@@ -156,6 +156,26 @@ tbody tr:hover .spark svg {
 
 /* 4. Hide LIVE badge so text is just "STRC" */
 .live-badge { display: none !important; }    
+
+/* Orange box around STRC row - uses the class from your HTML */
+tr.strc-row {
+    box-shadow: inset 0 0 0 8px #ff6600 !important;
+}
+
+/* Deep orange logo for STRC */
+tr.strc-row .ico {
+    background: #ff6600 !important;
+}
+
+/* Full row hover for sparkline - triggers when hovering anywhere on row */
+tbody tr:hover .spark svg {
+    filter: brightness(1.5) !important;
+    transform: scale(1.2) !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Hide LIVE badge so text is just "STRC" */
+.live-badge { display: none !important; }    
   </style>
 </head>
 <body>
