@@ -18,14 +18,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">  
   
   <style>
-    
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-*, *::before, *::after {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 body {
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -34,131 +30,57 @@ body {
     line-height: 1.6;
 }
 
-/* Top Header (keeps your current one) */
-header {
-    background: #000;
-    padding: 28px 32px 20px;
-    text-align: center;
-    border-bottom: 5px solid #ff8800;
-}
-header h1 {
-    font-size: 2.4rem;
-    font-weight: 800;
-    color: #ff8800;
-    margin: 0;
-}
-header p {
-    font-size: 1.15rem;
-    color: #ccc;
-    margin: 6px 0 0;
-}
+/* Top Header */
+header { background:#000; padding:28px 32px 20px; text-align:center; border-bottom:5px solid #ff8800; }
+header h1 { font-size:2.4rem; font-weight:800; color:#ff8800; margin:0; }
+header p { font-size:1.15rem; color:#ccc; margin:6px 0 0; }
 
 /* Top Bar */
-.topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 32px;
-    background: #111;
-    border-bottom: 1px solid #222;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-.topbar-left h1 { font-size: 1.35rem; color: #ff8800; }
-.topbar-left .sub { font-size: 0.95rem; color: #aaa; }
-.refresh-btn {
-    padding: 9px 18px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    background: #ff8800;
-    color: #000;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-.refresh-btn:hover { background: #ffaa22; }
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 32px; background:#111; border-bottom:1px solid #222; flex-wrap:wrap; gap:12px; }
+.topbar-left h1 { font-size:1.35rem; color:#ff8800; }
+.topbar-left .sub { font-size:0.95rem; color:#aaa; }
+.refresh-btn { padding:9px 18px; font-weight:600; font-size:0.95rem; background:#ff8800; color:#000; border:none; border-radius:8px; cursor:pointer; }
+.refresh-btn:hover { background:#ffaa22; }
 
 /* Table */
-.table-wrap { padding: 24px 32px 80px; overflow-x: auto; }
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #111;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 8px 30px rgba(255,136,0,0.15);
-}
-thead th {
-    padding: 18px 12px;
-    background: #ff8800;
-    color: #000;
-    font-weight: 700;
-    font-size: 0.9rem;
-    text-align: left;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-}
-thead th.r { text-align: right; }
-thead th.c { text-align: center; }
+.table-wrap { padding:24px 32px 80px; overflow-x:auto; }
+table { width:100%; border-collapse:collapse; background:#111; border-radius:12px; overflow:hidden; box-shadow:0 8px 30px rgba(255,136,0,0.15); }
+thead th { padding:18px 12px; background:#ff8800; color:#000; font-weight:700; font-size:0.9rem; text-align:left; position:sticky; top:0; z-index:2; }
+thead th.r { text-align:right; }
+thead th.c { text-align:center; }
 
-tbody tr {
-    border-bottom: 1px solid #222;
-    transition: background 0.2s;
-}
-tbody tr:hover { background: #1a1a1a; }
+tbody tr { border-bottom:1px solid #222; transition:background 0.2s; }
+tbody tr:hover { background:#1a1a1a; }
 
-td {
-    padding: 17px 14px;
-    font-size: 0.98rem;
-    background: #111;
-}
-td.r { text-align: right; font-weight: 500; }
-td.c { text-align: center; }
+td { padding:17px 14px; font-size:0.98rem; background:#111; }
+td.r { text-align:right; font-weight:500; }
+td.c { text-align:center; }
 
 /* Logo fixes */
-.name-cell { display: flex; align-items: center; gap: 14px; }
-.ico {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #fff;
-    flex-shrink: 0;
-    line-height: 42px;
-}
-.nm {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: #f1f1f1;
-}
+.name-cell { display:flex; align-items:center; gap:14px; }
+.ico { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.25rem; font-weight:700; color:#fff; flex-shrink:0; line-height:42px; }
+.nm { font-size:1.05rem; font-weight:600; color:#f1f1f1; }
 
-/* HIDE LIVE BADGE so it only says "STRC" */
-.live-badge { display: none !important; }
+/* HIDE LIVE BADGE — so it only says "STRC" */
+.live-badge { display:none !important; }
 
-/* ORANGE BOX AROUND STRC ROW — this is the exact selector you said worked before */
+/* ORANGE BOX AROUND STRC ROW — uses the exact selector you said worked first (plus backup) */
 tr:has(td:contains('STRC')),
-tr:has(.nm:contains('STRC')) {
+tr:has(.nm:contains('STRC')),
+tr.strc-row {
     background: #2c1700 !important;
     box-shadow: inset 0 0 0 6px #ff8800 !important;
     font-weight: 600;
 }
 
-/* SPARKLINE SLIDER — visible by default + strong hover effect when mouse rolls over row */
-.spark {
-    width: 130px;
-    text-align: center;
-}
+/* SPARKLINE SLIDER — works when mouse hovers ANYWHERE on the entire row (not just the column) */
+.spark { width:130px; text-align:center; }
 .spark svg {
-    height: 46px;
-    width: 122px;
-    vertical-align: middle;
-    display: block;
-    margin: 0 auto;
+    height:46px;
+    width:122px;
+    vertical-align:middle;
+    display:block;
+    margin:0 auto;
 }
 tbody tr:hover .spark svg {
     filter: brightness(1.45);
@@ -174,23 +96,12 @@ tbody tr:hover .spark svg {
 .gy { color:#999; }
 
 /* Symbol pill */
-.pill {
-    padding:5px 11px;
-    border-radius:6px;
-    font-size:0.82rem;
-    font-weight:700;
-}
+.pill { padding:5px 11px; border-radius:6px; font-size:0.82rem; font-weight:700; }
 
 /* Footer */
-.foot {
-    padding:32px;
-    text-align:center;
-    font-size:0.85rem;
-    color:#aaa;
-    border-top:1px solid #222;
-}
-.foot a { color:#ff8800; text-decoration:underline; } 
-  
+.foot { padding:32px; text-align:center; font-size:0.85rem; color:#aaa; border-top:1px solid #222; }
+.foot a { color:#ff8800; text-decoration:underline; }
+
   </style>
 </head>
 <body>
