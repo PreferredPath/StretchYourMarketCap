@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assets ranked by Market Cap - STRC Tracker</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #222; -webkit-font-smoothing: antialiased; }
+
+    /* ── Top Bar ── */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px; border-bottom: 1px solid #eee; flex-wrap: wrap; gap: 10px;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .topbar-left h1 { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+    .topbar-left .sub { font-size: 12px; color: #999; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .refresh-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 6px 14px; font-size: 12px; font-weight: 600; color: #fff;
+      background: #7c3aed; border: none; border-radius: 6px; cursor: pointer;
+      font-family: inherit; transition: background 0.15s;
+    }
+    .refresh-btn:hover { background: #6d28d9; }
+    .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .spin { display: inline-block; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .update-time { font-size: 11px; color: #aaa; }
+    #statusMsg { font-size: 11px; padding: 0 32px; margin-top: -4px; }
+    #statusMsg.ok { color: #059669; }
+    #statusMsg.warn { color: #d97706; }
+
+    /* ── Table ── */
+    .table-wrap { padding: 0 32px 60px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 14px 10px; font-size: 12px; font-weight: 600; color: #999;
+      text-align: left; border-bottom: 2px solid #eee; white-space: nowrap;
+      position: sticky; top: 0; background: #fff; z-index: 2;
+    }
+    thead th.r { text-align: right; }
+    thead th.c { text-align: center; }
+    tbody tr { border-bottom: 1px solid #f2f2f2; transition: background 0.12s; }
+    tbody tr:hover { background: #fafafa; }
+    td { padding: 14px 10px; vertical-align: middle; white-space: nowrap; font-size: 14px; }
+    td.r { text-align: right; }
+    td.c { text-align: center; }
+
+    /* ── STRC highlighted row ── */
+    tr.strc-row {
+      background: #f5f0ff;
+      box-shadow: inset 0 0 0 2px #f59e0b;
+    }
+    tr.strc-row:hover { background: #ede5ff; }
+
+    /* ── Rank cell ── */
+    .rank-cell { display: flex; align-items: center; gap: 6px; }
+    .fav { color: #ccc; font-size: 15px; cursor: default; }
+    .mv { font-size: 11px; font-weight: 600; min-width: 40px; text-align: right; }
+    .mv.up { color: #10b981; }
+    .mv.dn { color: #8b5cf6; }
+    .rk { font-size: 14px; font-weight: 600; color: #555; min-width: 46px; }
+
+    /* ── Name cell ── */
+    .name-cell { display: flex; align-items: center; gap: 12px; }
+    .ico {
+      width: 38px; height: 38px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; font-size: 17px;
+      font-weight: 700; color: #fff; flex-shrink: 0; overflow: hidden;
+    }
+    .nm { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+    .live-badge {
+      display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+      background: #10b981; color: #fff; padding: 2px 6px; border-radius: 4px;
+      margin-left: 8px; vertical-align: middle;
+    }
+
+    /* ── Symbol pill ── */
+    .pill {
+      display: inline-block; padding: 4px 10px; border-radius: 5px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+    }
+
+    /* ── Percent ── */
+    .g { color: #10b981; } /* green */
+    .rd { color: #ef4444; } /* red */
+    .gy { color: #bbb; }
+
+    /* ── Sparkline ── */
+    .spark svg { vertical-align: middle; }
+
+    /* ── Footer ── */
+    .foot {
+      padding: 20px 32px; border-top: 1px solid #eee;
+      font-size: 11px; color: #bbb; line-height: 1.7;
+    }
+    .foot a { color: #999; text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>Assets ranked by Market Cap</h1>
+    <span class="sub">STRC neighborhood — showing rank context around STRC</span>
+  </div>
+  <div class="topbar-right">
+    <button id="refreshBtn" class="refresh-btn" onclick="refreshSTRC()">
+      <span id="ri">↻</span> Refresh STRC
+    </button>
+    <span id="updateTime" class="update-time">—</span>
+  </div>
+</div>
+<div id="statusMsg"></div>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th style="width:150px;">Rank</th>
+        <th>Name</th>
+        <th>Symbol</th>
+        <th class="r">Market Cap</th>
+        <th class="r">Price</th>
+        <th class="r">24h</th>
+        <th class="r">7d</th>
+        <th class="c" style="width:120px;">Price (30 days)</th>
+      </tr>
+    </thead>
+    <tbody id="tb"></tbody>
+  </table>
+</div>
+
+<div class="foot">
+  Design inspired by <a href="https://companiesmarketcap.com/assets-by-market-cap/" target="_blank">companiesmarketcap.com</a>
+  &bull; STRC price from Yahoo Finance &bull; Market cap = price &times; <code>sharesOutstanding</code> (update weekly from <a href="https://www.strategy.com/strc" target="_blank">strategy.com/strc</a> or <a href="https://strc.live/ticker/strc" target="_blank">strc.live</a>)
+  &bull; Neighboring companies are a static snapshot from companiesmarketcap.com &bull; Not financial advice
+</div>
+
+<script>
+// ============================================================================
+// STRC CONFIG — update sharesOutstanding from strategy.com/strc or strc.live
+// As of Mar 16 2026 8-K: ~50,318,467 shares (38.5M prior + 11,818,467 new Mar 9-15)
+// ~$5.02B market cap at $99.75 — 22,337 BTC purchased, 761,068 BTC total
+// ============================================================================
+const STRC_CFG = {
+  shares: 50318467,
+  fallbackPrice: 99.75,
+  fallbackPct24h: -0.26,
+  fallbackPct7d: -1.27,
+};
+
+// ============================================================================
+// NEIGHBORING COMPANIES — from 8marketcap.com around the $5.0-5.13B range
+// ============================================================================
+// TO UPDATE: Visit https://8marketcap.com/?page=33 and https://8marketcap.com/?page=34
+// to find companies in the $5.0-5.2B market cap range.
+//
+// Last updated: March 17 2026 — post 8-K filing, ~$5.02B STRC market cap
+// STRC rank ~3316 at $5.02B (50,318,467 shares × ~$99.75)
+// ============================================================================
+const neighbors = [
+  // ── Above STRC (~$5.02–5.13B) ──
+  { rank: 3281, mv: 18, mvDir: "dn", name: "Randstad",             symbol: "RAND.AS",      mcap: 5.13e9, price: 35.24, pct24: -1.81, pct7: -3.08, color: "#1e40af", trend: [60,62,58,55,57,60,58,55,52,50,48,50,52,50,48], pillBg: "#dbeafe", pillFg: "#1e40af" },
+  { rank: 3282, mv: 24, mvDir: "dn", name: "Syensqo",              symbol: "SYENS.BR",     mcap: 5.13e9, price: 74.10, pct24: -2.73, pct7: -9.29, color: "#7c3aed", trend: [72,70,68,65,60,58,55,50,48,45,42,40,38,36,35], pillBg: "#f3e8ff", pillFg: "#7c3aed" },
+  { rank: 3283, mv: 12, mvDir: "up", name: "Macerich",             symbol: "MAC",          mcap: 5.13e9, price: 17.82, pct24:  2.70, pct7: -0.88, color: "#059669", trend: [52,55,58,55,52,55,58,55,52,50,52,55,52,50,52], pillBg: "#dcfce7", pillFg: "#16a34a" },
+  { rank: 3284, mv: 22, mvDir: "dn", name: "Berger Paints India",  symbol: "BERGEPAINT.NS",mcap: 5.12e9, price:  5.42, pct24: -0.81, pct7: -6.84, color: "#ea580c", trend: [65,62,60,58,55,52,50,48,45,42,40,42,44,42,40], pillBg: "#ffedd5", pillFg: "#ea580c" },
+  { rank: 3286, mv:  8, mvDir: "up", name: "Landstar System",      symbol: "LSTR",         mcap: 5.12e9, price: 145.60, pct24:  0.83, pct7: -2.33, color: "#2563eb", trend: [55,58,55,52,55,58,55,52,50,48,50,52,50,48,46], pillBg: "#dbeafe", pillFg: "#2563eb" },
+  { rank: 3287, mv: 31, mvDir: "dn", name: "Wallenius Wilhelmsen", symbol: "WAWI.OL",      mcap: 5.12e9, price:  9.84, pct24:  0.95, pct7:-12.57, color: "#1e3a5f", trend: [78,75,70,65,60,55,50,45,42,38,35,32,30,28,26], pillBg: "#e0e7ff", pillFg: "#4338ca" },
+  { rank: 3290, mv: 11, mvDir: "up", name: "Mirvac Group",         symbol: "MGR.AX",       mcap: 5.11e9, price:  1.88, pct24:  0.27, pct7: -0.54, color: "#0d9488", trend: [52,55,52,50,52,55,52,50,52,55,52,50,52,50,50], pillBg: "#ccfbf1", pillFg: "#0d9488" },
+  { rank: 3292, mv: 19, mvDir: "dn", name: "Post Holdings",        symbol: "POST",         mcap: 5.11e9, price:  86.40, pct24: -0.47, pct7: -7.06, color: "#b45309", trend: [68,65,62,58,55,52,48,45,42,40,38,36,38,36,34], pillBg: "#fef3c7", pillFg: "#b45309" },
+  { rank: 3306, mv: 14, mvDir: "up", name: "FTI Consulting",       symbol: "FCN",          mcap: 5.05e9, price: 129.80, pct24:  0.72, pct7: -2.28, color: "#1e40af", trend: [55,58,55,52,55,58,55,52,50,48,50,52,50,48,46], pillBg: "#dbeafe", pillFg: "#2563eb" },
+  { rank: 3307, mv:  7, mvDir: "dn", name: "MSC Industrial Direct",symbol: "MSM",          mcap: 5.05e9, price:  74.30, pct24: -0.71, pct7:  0.48, color: "#374151", trend: [48,50,52,50,48,50,52,55,52,50,52,55,52,50,52], pillBg: "#f1f5f9", pillFg: "#475569" },
+  { rank: 3312, mv: 16, mvDir: "up", name: "HORIBA",               symbol: "6856.T",       mcap: 5.03e9, price: 6024,  pct24:  1.35, pct7:  3.72, color: "#dc2626", trend: [45,48,50,52,55,52,55,58,55,58,60,58,55,58,60], pillBg: "#fee2e2", pillFg: "#dc2626" },
+  { rank: 3313, mv:  9, mvDir: "up", name: "Sensata Technologies", symbol: "ST",           mcap: 5.03e9, price:  21.48, pct24:  0.73, pct7:  4.23, color: "#0891b2", trend: [42,45,48,50,52,55,58,55,58,60,62,60,58,60,62], pillBg: "#e0f2fe", pillFg: "#0284c7" },
+  { rank: 3315, mv: 13, mvDir: "dn", name: "Vallourec",            symbol: "VK.PA",        mcap: 5.02e9, price:  16.24, pct24:  0.62, pct7: -3.56, color: "#1d4ed8", trend: [60,58,55,52,55,58,55,52,50,48,50,52,50,48,46], pillBg: "#dbeafe", pillFg: "#1d4ed8" },
+
+  // ── STRC goes here (~rank 3316, inserted dynamically) ──
+
+  { rank: 3316, mv:  5, mvDir: "dn", name: "Flughafen Wien",       symbol: "FLU.VI",       mcap: 5.01e9, price:  38.90, pct24: null,   pct7: -1.89, color: "#dc2626", trend: [55,52,55,52,50,52,55,52,50,52,50,48,50,48,46], pillBg: "#fee2e2", pillFg: "#dc2626" },
+  { rank: 3318, mv: 28, mvDir: "dn", name: "Kobe Bussan",          symbol: "3038.T",       mcap: 5.01e9, price: 3024,  pct24: -4.38, pct7: -5.12, color: "#dc2626", trend: [65,62,58,55,52,50,48,45,42,40,42,44,42,40,38], pillBg: "#fee2e2", pillFg: "#dc2626" },
+  { rank: 3319, mv: 33, mvDir: "dn", name: "Hindustan Copper",     symbol: "HINDCOPPER.NS",mcap: 5.01e9, price:   1.98, pct24: -3.78, pct7:-11.65, color: "#ea580c", trend: [75,70,65,60,55,50,45,42,40,38,35,32,30,28,26], pillBg: "#ffedd5", pillFg: "#ea580c" },
+  { rank: 3320, mv: 10, mvDir: "dn", name: "Sumitomo Chemical",    symbol: "4005.T",       mcap: 5.00e9, price:  270.0, pct24: -2.43, pct7:  0.47, color: "#dc2626", trend: [48,50,52,50,48,50,52,55,52,50,52,55,52,50,50], pillBg: "#fee2e2", pillFg: "#dc2626" },
+  { rank: 3322, mv: 29, mvDir: "dn", name: "Bruker",               symbol: "BRKR",         mcap: 5.00e9, price:  32.80, pct24: -2.62, pct7:-11.65, color: "#2563eb", trend: [75,70,65,60,55,50,45,42,40,38,35,32,30,28,26], pillBg: "#dbeafe", pillFg: "#2563eb" },
+  { rank: 3323, mv: 17, mvDir: "up", name: "Ypsomed",              symbol: "YPSN.SW",      mcap: 4.99e9, price: 218.40, pct24:  3.41, pct7:  5.48, color: "#dc2626", trend: [40,42,45,48,50,52,55,58,55,58,60,62,65,68,70], pillBg: "#fee2e2", pillFg: "#dc2626" },
+  { rank: 3325, mv:  6, mvDir: "dn", name: "Dukhan Bank",          symbol: "DUBK.QA",      mcap: 4.99e9, price:   2.42, pct24: -0.29, pct7: -0.83, color: "#9b1c1c", trend: [52,55,52,50,52,55,52,50,52,55,52,50,52,50,48], pillBg: "#fee2e2", pillFg: "#9b1c1c" },
+  { rank: 3326, mv: 11, mvDir: "up", name: "Mercury General",      symbol: "MCY",          mcap: 4.98e9, price:  62.70, pct24:  1.23, pct7:  0.40, color: "#059669", trend: [48,50,52,50,48,50,52,55,52,50,52,55,52,50,52], pillBg: "#dcfce7", pillFg: "#16a34a" },
+  { rank: 3327, mv: 20, mvDir: "dn", name: "CSN Mineração",        symbol: "CMIN3.SA",     mcap: 4.97e9, price:   1.42, pct24: -0.21, pct7: -7.12, color: "#16a34a", trend: [70,65,62,58,55,52,48,45,42,40,38,36,38,36,34], pillBg: "#dcfce7", pillFg: "#16a34a" },
+  { rank: 3329, mv:  8, mvDir: "dn", name: "Main Street Capital",  symbol: "MAIN",         mcap: 4.97e9, price:  52.30, pct24:  0.49, pct7: -2.92, color: "#2563eb", trend: [58,55,52,55,58,55,52,50,48,50,52,50,48,46,44], pillBg: "#dbeafe", pillFg: "#2563eb" },
+  { rank: 3330, mv: 15, mvDir: "up", name: "British Land",         symbol: "BLND.L",       mcap: 4.96e9, price:   4.38, pct24:  2.19, pct7:  2.24, color: "#1e3a5f", trend: [45,48,50,52,55,52,55,58,55,58,60,58,55,58,60], pillBg: "#e0e7ff", pillFg: "#4338ca" },
+  { rank: 3332, mv:  9, mvDir: "up", name: "NWS Holdings",         symbol: "0659.HK",      mcap: 4.96e9, price:   4.28, pct24:  0.35, pct7:  1.53, color: "#dc2626", trend: [48,50,52,50,48,50,52,55,52,50,52,55,52,50,52], pillBg: "#fee2e2", pillFg: "#dc2626" },
+];
+
+// ============================================================================
+// STRC object — dynamic, updated via refresh
+// ============================================================================
+let strcAsset = {
+  rank: 3316, mv: 39, mvDir: "dn", name: "STRC", symbol: "STRC",
+  mcap: STRC_CFG.fallbackPrice * STRC_CFG.shares,
+  price: STRC_CFG.fallbackPrice,
+  pct24: STRC_CFG.fallbackPct24h, pct7: STRC_CFG.fallbackPct7d,
+  color: "#f59e0b", isSTRC: true,
+  trend: [50,50,50,50,50,50,50,50,50,50,50,50,50,50,50], // Near-par, flat
+  pillBg: "#f3e8ff", pillFg: "#7c3aed",
+};
+
+// ── Format helpers ──
+function fmtMcap(v) {
+  if (v >= 1e12) return `$${(v/1e12).toFixed(2)} T`;
+  if (v >= 1e9) return `$${(v/1e9).toFixed(2)} B`;
+  if (v >= 1e6) return `$${(v/1e6).toFixed(2)} M`;
+  return `$${v.toLocaleString()}`;
+}
+function fmtPrice(v) {
+  if (v >= 1000) return `$${v.toLocaleString('en-US',{maximumFractionDigits:0})}`;
+  if (v >= 1) return `$${v.toFixed(2)}`;
+  return `$${v.toFixed(4)}`;
+}
+function fmtPct(v) {
+  if (v === null || v === undefined) return `<span class="gy">N/A</span>`;
+  return `<span class="${v >= 0 ? 'g' : 'rd'}">${v.toFixed(2)}%</span>`;
+}
+
+// Sparkline: teal (#10b981) for up/flat 7d, pink (#ec4899) for down 7d
+function spark(data, pct7) {
+  if (!data || data.length < 2) return '';
+  const w = 110, h = 36, p = 3;
+  const mn = Math.min(...data), mx = Math.max(...data), rng = mx - mn || 1;
+  const pts = data.map((v,i) => {
+    const x = p + (i/(data.length-1))*(w-2*p);
+    const y = h - p - ((v-mn)/rng)*(h-2*p);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const up = (pct7 || 0) >= 0;
+  const stroke = up ? '#10b981' : '#ec4899';
+  const fill = up ? 'rgba(16,185,129,0.10)' : 'rgba(236,72,153,0.10)';
+  const close = `${(p+(data.length-1)/(data.length-1)*(w-2*p)).toFixed(1)},${h} ${p},${h}`;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polygon fill="${fill}" points="${pts} ${close}"/><polyline fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="${pts}"/></svg>`;
+}
+
+// ── Render ──
+function render() {
+  // Merge STRC into neighbors, sort by mcap desc, re-assign ranks
+  const all = [...neighbors];
+  // Remove any existing STRC placeholder
+  const filtered = all.filter(a => !a.isSTRC);
+  filtered.push(strcAsset);
+  // Sort by mcap descending
+  filtered.sort((a,b) => b.mcap - a.mcap);
+  // Re-assign ALL ranks sequentially starting from the base rank
+  const baseRank = Math.min(...neighbors.map(n => n.rank));
+  filtered.forEach((a,i) => {
+    a.rank = baseRank + i;
+  });
+
+  const tb = document.getElementById('tb');
+  tb.innerHTML = filtered.map(a => {
+    const isS = a.isSTRC;
+    const cls = isS ? 'strc-row' : '';
+    const star = '☆';
+    const mvCls = a.mvDir === 'up' ? 'up' : 'dn';
+    const mvArrow = a.mvDir === 'up' ? '▲' : '▼';
+    const icon = isS
+      ? `<div class="ico" style="background:#f59e0b;">S</div>`
+      : `<div class="ico" style="background:${a.color || '#6b7280'};">${(a.name||'?')[0]}</div>`;
+    const nameHtml = isS
+      ? `<span class="nm">STRC<span class="live-badge">LIVE</span></span>`
+      : `<span class="nm">${a.name}</span>`;
+    const pill = a.symbol
+      ? `<span class="pill" style="background:${a.pillBg||'#f1f5f9'};color:${a.pillFg||'#475569'};">${a.symbol}</span>`
+      : '';
+    const sparkHtml = spark(a.trend, a.pct7);
+
+    return `<tr class="${cls}">
+      <td><div class="rank-cell"><span class="fav">${star}</span><span class="mv ${mvCls}">${mvArrow}${a.mv}</span><span class="rk">${a.rank}</span></div></td>
+      <td><div class="name-cell">${icon}${nameHtml}</div></td>
+      <td>${pill}</td>
+      <td class="r" style="font-weight:500;">${fmtMcap(a.mcap)}</td>
+      <td class="r">${fmtPrice(a.price)}</td>
+      <td class="r">${fmtPct(a.pct24)}</td>
+      <td class="r">${fmtPct(a.pct7)}</td>
+      <td class="c spark">${sparkHtml}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── STRC fetch ──
+async function fetchSTRC() {
+  const sym = 'STRC';
+  const urls = [
+    `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${sym}`,
+    `https://corsproxy.io/?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${sym}`)}`,
+    `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${sym}`)}`,
+  ];
+  for (const url of urls) {
+    try {
+      const r = await fetch(url, {signal: AbortSignal.timeout(8000)});
+      if (!r.ok) continue;
+      let d = await r.json();
+      if (d.contents) d = JSON.parse(d.contents);
+      const q = d?.quoteResponse?.result?.[0];
+      if (q?.regularMarketPrice) {
+        return { price: q.regularMarketPrice, pct24: q.regularMarketChangePercent, src: 'live' };
+      }
+    } catch(e) { console.log('fetch fail', e.message); }
+  }
+  // chart backup
+  try {
+    const r = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1d`)}`, {signal: AbortSignal.timeout(8000)});
+    if (r.ok) {
+      let d = await r.json();
+      if (d.contents) d = JSON.parse(d.contents);
+      const m = d?.chart?.result?.[0]?.meta;
+      if (m?.regularMarketPrice) {
+        return { price: m.regularMarketPrice, pct24: m.previousClose ? ((m.regularMarketPrice-m.previousClose)/m.previousClose*100) : 0, src: 'chart' };
+      }
+    }
+  } catch(e) {}
+  // cached
+  try { const c = JSON.parse(localStorage.getItem('strc')); if (c?.price) return {...c, src:'cache'}; } catch(e) {}
+  return { price: STRC_CFG.fallbackPrice, pct24: STRC_CFG.fallbackPct24h, src: 'fallback' };
+}
+
+async function refreshSTRC() {
+  const btn = document.getElementById('refreshBtn');
+  const ri = document.getElementById('ri');
+  const msg = document.getElementById('statusMsg');
+  btn.disabled = true; ri.classList.add('spin');
+
+  const data = await fetchSTRC();
+  strcAsset.price = data.price;
+  strcAsset.pct24 = data.pct24;
+  strcAsset.mcap = data.price * STRC_CFG.shares;
+
+  try { localStorage.setItem('strc', JSON.stringify(data)); } catch(e) {}
+
+  const now = new Date().toLocaleString('en-US', { timeZone:'America/Los_Angeles', month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit', timeZoneName:'short' });
+  document.getElementById('updateTime').textContent = now;
+
+  const s = (STRC_CFG.shares/1e6).toFixed(1);
+  if (data.src === 'live' || data.src === 'chart') {
+    msg.textContent = `✅ $${data.price.toFixed(2)} × ${s}M shares = ${fmtMcap(strcAsset.mcap)}`;
+    msg.className = 'ok';
+  } else {
+    msg.textContent = `⚠️ Using ${data.src} data — $${data.price.toFixed(2)} × ${s}M = ${fmtMcap(strcAsset.mcap)}`;
+    msg.className = 'warn';
+  }
+
+  render();
+  btn.disabled = false; ri.classList.remove('spin');
+}
+
+// ── Init ──
+render();
+refreshSTRC();
+</script>
+</body>
+</html>
