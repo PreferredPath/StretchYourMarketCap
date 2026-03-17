@@ -132,6 +132,30 @@ tr:has(td:contains("STRC")) .ico {
 
 /* Ensure LIVE badge is hidden (just "STRC") */
 .live-badge, .live-badge * { display: none !important; }    
+
+/* 1. Thick deep orange border around the full STRC row - aggressive matching */
+tr:has(td:contains('STRC')),
+tr:has(.nm:contains('STRC')),
+tr:has(span:contains('STRC')) {
+    box-shadow: inset 0 0 0 8px #ff6600 !important;
+}
+
+/* 2. Deep orange logo for STRC row */
+tr:has(td:contains('STRC')) .ico,
+tr:has(.nm:contains('STRC')) .ico,
+tr:has(span:contains('STRC')) .ico {
+    background: #ff6600 !important;
+}
+
+/* 3. Full row hover for sparkline - triggers when hovering ANYWHERE on row */
+tbody tr:hover .spark svg {
+    filter: brightness(1.5) !important;
+    transform: scale(1.2) !important;
+    transition: all 0.3s ease !important;
+}
+
+/* 4. Hide LIVE badge so text is just "STRC" */
+.live-badge { display: none !important; }    
   </style>
 </head>
 <body>
