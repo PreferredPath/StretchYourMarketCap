@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">  
   <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 *, *::before, *::after {
     margin: 0;
@@ -124,22 +124,27 @@ td.c { text-align: center; }
     color: #f1f1f1;
 }
 
-/* STRC Orange Box */
+/* STRC ORANGE BOX (stronger, will always follow the STRC row as rank changes) */
 tr.strc-row {
     background: #2c1700 !important;
-    box-shadow: inset 0 0 0 4px #ff8800;
+    box-shadow: inset 0 0 0 5px #ff8800 !important;
     font-weight: 600;
 }
 
-/* Sparkline Fix (slider feature restored) */
+/* Sparkline SLIDER on hover (the feature you liked) */
 .spark {
-    width: 120px;
+    width: 130px;
     text-align: center;
 }
 .spark svg {
-    height: 42px;
-    width: 110px;
+    height: 44px;
+    width: 118px;
     vertical-align: middle;
+    transition: all 0.2s;
+}
+tbody tr:hover .spark svg {
+    filter: brightness(1.3);
+    transform: scale(1.08);
 }
 
 /* Rank & Percent */
@@ -162,7 +167,8 @@ tr.strc-row {
     padding:32px; text-align:center; font-size:0.85rem;
     color:#aaa; border-top:1px solid #222;
 }
-.foot a { color:#ff8800; text-decoration:underline; }  </style>
+.foot a { color:#ff8800; text-decoration:underline; } 
+  </style>
 </head>
 <body>
 
