@@ -361,6 +361,45 @@ refreshSTRC = function() {
 };
 
 highlightSTRCRow(); // initial run
+
+// Force deep orange border around STRC row + logo + hide LIVE
+window.addEventListener('load', () => {
+  const rows = document.querySelectorAll('#tb tr');
+  rows.forEach(row => {
+    if (row.innerHTML.includes('STRC')) {
+      // Thick deep orange border around whole row
+      row.style.boxShadow = 'inset 0 0 0 8px #ff6600';
+      row.style.border = '4px solid #ff6600';
+
+      // Deep orange logo
+      const ico = row.querySelector('.ico');
+      if (ico) ico.style.background = '#ff6600';
+
+      // Hide LIVE badge
+      const badge = row.querySelector('.live-badge');
+      if (badge) badge.style.display = 'none';
+    }
+  });
+});
+
+// Run again after refresh button click
+const originalRefresh = refreshSTRC;
+refreshSTRC = function() {
+  originalRefresh();
+  setTimeout(() => {
+    const rows = document.querySelectorAll('#tb tr');
+    rows.forEach(row => {
+      if (row.innerHTML.includes('STRC')) {
+        row.style.boxShadow = 'inset 0 0 0 8px #ff6600';
+        row.style.border = '4px solid #ff6600';
+        const ico = row.querySelector('.ico');
+        if (ico) ico.style.background = '#ff6600';
+        const badge = row.querySelector('.live-badge');
+        if (badge) badge.style.display = 'none';
+      }
+    });
+  }, 500); // small delay for row to render
+};  
   </style>
 </head>
 <body>
