@@ -64,15 +64,13 @@ td.c { text-align:center; }
 /* HIDE LIVE BADGE — so it only says "STRC" */
 .live-badge { display:none !important; }
 
-/* ORANGE BOX AROUND STRC ROW — uses the exact selector you said worked first (plus backup) */
-tr:has(td:contains('STRC')),
-tr:has(.nm:contains('STRC')),
-tr.strc-row {
+    /* ORANGE BOX AROUND STRC ROW – fixed to work reliably */
+tr.strc-row,
+tr:has(.nm:contains("STRC")) {
     background: #2c1700 !important;
     box-shadow: inset 0 0 0 6px #ff8800 !important;
     font-weight: 600;
 }
-
 /* SPARKLINE SLIDER — works when mouse hovers ANYWHERE on the entire row (not just the column) */
 .spark { width:130px; text-align:center; }
 .spark svg {
