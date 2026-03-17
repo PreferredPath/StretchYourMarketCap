@@ -23,11 +23,33 @@
 
 body {
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    background-color: #0f0f0f;          /* Dark near-black – Strategy-inspired */
-    color: #e0e0e0;                     /* Light gray text */
+    background-color: #0f0f0f;
+    color: #f0f0f0;                     /* Slightly brighter text */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    line-height: 1.5;
+    line-height: 1.6;
+}
+
+/* New: Branded Top Header */
+header {
+    background-color: #000;
+    color: #fff;
+    padding: 24px 32px 16px;
+    text-align: center;
+    border-bottom: 4px solid #ff9900;
+}
+
+header h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #ff9900;
+    margin: 0;
+}
+
+header p {
+    font-size: 1.1rem;
+    color: #ccc;
+    margin: 8px 0 0;
 }
 
 /* ── Top Bar ── */
@@ -35,104 +57,68 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 32px;
+    padding: 12px 32px;
     border-bottom: 1px solid #333;
-    background-color: #1a1a1a;
+    background-color: #111;
     flex-wrap: wrap;
     gap: 12px;
 }
 
-.topbar-left {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
 .topbar-left h1 {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    color: #ff9900;                     /* Orange title */
+    color: #ff9900;
 }
 
 .topbar-left .sub {
-    font-size: 0.95rem;
-    color: #aaa;
-}
-
-.topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    font-size: 0.9rem;
+    color: #bbb;
 }
 
 .refresh-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
+    padding: 8px 18px;
     font-size: 0.95rem;
     font-weight: 600;
     color: #000;
-    background-color: #ff9900;          /* Orange button */
+    background-color: #ff9900;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     transition: background 0.2s;
 }
 
-.refresh-btn:hover {
-    background-color: #ffaa33;
-}
+.refresh-btn:hover { background-color: #ffaa33; }
 
-.refresh-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.spin {
-    display: inline-block;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.update-time {
-    font-size: 0.85rem;
-    color: #aaa;
-}
-
+/* Status & time */
 #statusMsg {
-    font-size: 0.85rem;
-    padding: 8px 32px;
-    margin-top: -4px;
+    padding: 12px 32px;
+    font-size: 0.95rem;
+    font-weight: 500;
 }
 
-#statusMsg.ok { color: #10b981; }
-#statusMsg.warn { color: #fbbf24; }
-
-/* ── Table Wrapper ── */
-.table-wrap {
-    padding: 0 32px 60px;
-    overflow-x: auto;
+#updateTime {
+    font-size: 0.9rem;
+    color: #ccc;
 }
+
+/* ── Table ── */
+.table-wrap { padding: 24px 32px 80px; }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    background-color: #1a1a1a;          /* Dark table bg */
-    border-radius: 8px;
+    background-color: #111;
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(255, 153, 0, 0.12);
+    box-shadow: 0 6px 25px rgba(255, 153, 0, 0.15);
 }
 
 thead th {
-    padding: 14px 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #000;                        /* Black on orange */
-    background-color: #ff9900;          /* Strategy orange headers */
+    padding: 16px 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #000;
+    background-color: #ff9900;
     text-align: left;
     white-space: nowrap;
     position: sticky;
@@ -141,145 +127,64 @@ thead th {
     border-bottom: 2px solid #e0a650;
 }
 
-thead th.r { text-align: right; }
-thead th.c { text-align: center; }
-
 tbody tr {
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid #222;
     transition: background 0.15s;
 }
 
 tbody tr:hover {
-    background-color: #252525;          /* Hover highlight */
+    background-color: #1e1e1e;
 }
 
 td {
-    padding: 14px 12px;
-    vertical-align: middle;
-    white-space: nowrap;
-    font-size: 0.95rem;
-    background-color: #1a1a1a;          /* Dark cells */
+    padding: 16px 12px;
+    font-size: 0.98rem;
+    background-color: #111;
 }
 
-td.r { text-align: right; }
+td.r { text-align: right; font-weight: 500; }
 td.c { text-align: center; }
 
-/* ── STRC highlighted row ── */
+/* STRC row */
 tr.strc-row {
-    background: #331a00;                /* Dark orange tint */
+    background: #2a1500;
     box-shadow: inset 0 0 0 2px #ff9900;
 }
 
-tr.strc-row:hover {
-    background: #3d2200;
-}
+tr.strc-row:hover { background: #331a00; }
 
-/* ── Rank cell ── */
-.rank-cell {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
+/* Rank & symbols */
+.rank-cell { gap: 8px; }
+.fav { color: #777; font-size: 1.2rem; }
+.mv { font-size: 0.9rem; min-width: 44px; }
+.rk { font-size: 1.05rem; font-weight: 700; color: #ddd; }
 
-.fav {
-    color: #666;
-    font-size: 1.1rem;
-    cursor: default;
-}
+/* Name & pill */
+.nm { font-size: 1.05rem; font-weight: 600; }
+.ico { width: 40px; height: 40px; font-size: 1.2rem; }
+.pill { font-size: 0.85rem; padding: 5px 12px; }
 
-.mv {
-    font-size: 0.85rem;
-    font-weight: 600;
-    min-width: 40px;
-    text-align: right;
-}
+/* Percents & spark */
+.g { color: #34d399; font-weight: 600; }
+.rd { color: #f87171; font-weight: 600; }
+.gy { color: #999; }
+.spark svg { height: 40px; }
 
-.mv.up { color: #10b981; }
-.mv.dn { color: #ef4444; }
-
-.rk {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #aaa;
-    min-width: 46px;
-}
-
-/* ── Name cell ── */
-.name-cell {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.ico {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #fff;
-    flex-shrink: 0;
-    overflow: hidden;
-}
-
-.nm {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #e0e0e0;
-}
-
-.live-badge {
-    display: inline-block;
-    font-size: 0.65rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    background: #10b981;
-    color: #fff;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-left: 8px;
-    vertical-align: middle;
-}
-
-/* ── Symbol pill ── */
-.pill {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 5px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-}
-
-/* ── Percent colors ── */
-.g { color: #34d399; } /* brighter green */
-.rd { color: #f87171; } /* brighter red */
-.gy { color: #aaa; }
-
-/* ── Sparkline ── */
-.spark svg { vertical-align: middle; }
-
-/* ── Footer ── */
+/* Footer */
 .foot {
-    padding: 20px 32px;
-    border-top: 1px solid #333;
-    font-size: 0.8rem;
-    color: #aaa;
-    line-height: 1.6;
+    padding: 32px;
+    border-top: 1px solid #222;
+    font-size: 0.85rem;
+    color: #bbb;
     text-align: center;
 }
 
 .foot a {
     color: #ff9900;
-    text-decoration: underline;
+    font-weight: 500;
 }
 
-.foot a:hover {
-    color: #ffaa33;
-}  </style>
+.foot a:hover { color: #ffaa33; }}  </style>
 </head>
 <body>
 
