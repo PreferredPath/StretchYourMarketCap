@@ -29,398 +29,469 @@ body {
     line-height: 1.6;
 }
 
-/* Top Header */
-header { background:#000; padding:28px 32px 20px; text-align:center; border-bottom:5px solid #ff8800; }
-header h1 { font-size:2.4rem; font-weight:800; color:#ff8800; margin:0; }
-header p { font-size:1.15rem; color:#ccc; margin:6px 0 0; }
-
-/* Top Bar */
-.topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 32px; background:#111; border-bottom:1px solid #222; flex-wrap:wrap; gap:12px; }
-.topbar-left h1 { font-size:1.35rem; color:#ff8800; }
-.topbar-left .sub { font-size:0.95rem; color:#aaa; }
-.refresh-btn { padding:9px 18px; font-weight:600; font-size:0.95rem; background:#ff8800; color:#000; border:none; border-radius:8px; cursor:pointer; }
-.refresh-btn:hover { background:#ffaa22; }
-
-/* Table */
-.table-wrap { padding:24px 32px 80px; overflow-x:auto; }
-table { width:100%; border-collapse:collapse; background:#111; border-radius:12px; overflow:hidden; box-shadow:0 8px 30px rgba(255,136,0,0.15); }
-thead th { padding:18px 12px; background:#ff8800; color:#000; font-weight:700; font-size:0.9rem; text-align:left; position:sticky; top:0; z-index:2; }
-thead th.r { text-align:right; }
-thead th.c { text-align:center; }
-
-tbody tr { border-bottom:1px solid #222; transition:background 0.2s; }
-tbody tr:hover { background:#1a1a1a; }
-
-td { padding:17px 14px; font-size:0.98rem; background:#111; }
-td.r { text-align:right; font-weight:500; }
-td.c { text-align:center; }
-
-/* Logo fixes */
-.name-cell { display:flex; align-items:center; gap:14px; }
-.ico { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.25rem; font-weight:700; color:#fff; flex-shrink:0; line-height:42px; }
-.nm { font-size:1.05rem; font-weight:600; color:#f1f1f1; }
-
-/* Hide LIVE badge */
-.live-badge { display:none !important; }
-
-/* ORANGE BORDER AROUND ENTIRE STRC ROW */
-tr.strc-row,
-tr:has(.nm:contains("STRC")) {
-    box-shadow: inset 0 0 0 6px #ff6600 !important;
+/* =============== HEADER =============== */
+header { 
+    background:#000; 
+    padding:28px 32px 20px; 
+    text-align:center; 
+    border-bottom:5px solid #ff8800; 
+}
+header h1 { 
+    font-size:2.4rem; 
+    font-weight:800; 
+    color:#ff8800; 
+    margin:0; 
+}
+header p { 
+    font-size:1.15rem; 
+    color:#ccc; 
+    margin:6px 0 0; 
 }
 
-/* Deep orange STRC logo */
-tr.strc-row .ico,
-tr:has(.nm:contains("STRC")) .ico {
-    background: #ff6600 !important;
+/* =============== X PROFILE HEADER =============== */
+.x-profile-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    padding: 20px 32px;
+    border-bottom: 1px solid #222;
 }
 
-/* Full row hover sparkline slider */
+.x-profile-link {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+}
+
+.x-profile-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.x-profile-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #f1f1f1;
+    transition: color 0.3s ease;
+}
+
+.x-logo {
+    width: 40px;
+    height: 40px;
+    color: #f1f1f1;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.x-profile-link:hover .x-profile-text,
+.x-profile-link:hover .x-logo {
+    color: #ff8800;
+}
+
+.x-profile-link:hover .x-logo {
+    transform: scale(1.1);
+}
+
+/* =============== TOP BAR =============== */
+.topbar { 
+    display:flex; 
+    align-items:center; 
+    justify-content:space-between; 
+    padding:14px 32px; 
+    background:#111; 
+    border-bottom:1px solid #222; 
+    flex-wrap:wrap; 
+    gap:12px; 
+}
+.topbar-left h1 { 
+    font-size:1.35rem; 
+    color:#ff8800; 
+}
+.topbar-left .sub { 
+    font-size:0.95rem; 
+    color:#aaa; 
+}
+
+/* =============== REFRESH BUTTON - ENHANCED =============== */
+.refresh-btn { 
+    padding:10px 18px; 
+    font-weight:600; 
+    font-size:0.95rem; 
+    background:#ff8800; 
+    color:#000; 
+    border:none; 
+    border-radius:8px; 
+    cursor:pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 8px rgba(255, 136, 0, 0.2);
+}
+.refresh-btn:hover { 
+    background:#ffaa22;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 136, 0, 0.4);
+}
+.refresh-btn:active {
+    transform: translateY(0);
+}
+.refresh-btn #ri {
+    display: inline-block;
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.refresh-btn:active #ri {
+    transform: rotate(180deg);
+}
+
+/* =============== TABLE CONTAINER & LAYOUT =============== */
+.table-wrap { 
+    padding:24px 32px 80px; 
+    overflow-x:auto; 
+    background: linear-gradient(135deg, rgba(26,15,0,0.3) 0%, transparent 50%, rgba(26,15,0,0.2) 100%);
+}
+
+table { 
+    width:100%; 
+    border-collapse:separate;
+    border-spacing: 0 12px;
+    background: transparent;
+}
+
+/* =============== TABLE HEADER =============== */
+thead th { 
+    padding:18px 16px; 
+    background:#ff8800; 
+    color:#000; 
+    font-weight:700; 
+    font-size:0.95rem; 
+    text-align:left; 
+    position:sticky; 
+    top:0; 
+    z-index:2;
+    border-radius: 8px 8px 0 0;
+}
+thead th.r { 
+    text-align:right; 
+}
+thead th.c { 
+    text-align:center; 
+}
+
+/* =============== TABLE ROWS - CARD DESIGN =============== */
+tbody tr { 
+    background: rgba(17, 17, 17, 0.85);
+    border-radius: 12px; 
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 136, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+tbody tr:hover { 
+    background: rgba(26, 26, 26, 0.95);
+    box-shadow: 0 8px 24px rgba(255, 136, 0, 0.15);
+    transform: translateY(-2px);
+    border-color: rgba(255, 136, 0, 0.2);
+}
+
+td { 
+    padding:17px 16px; 
+    font-size:0.98rem; 
+    background: transparent;
+    border: none;
+}
+td:first-child {
+    border-radius: 12px 0 0 12px;
+}
+td:last-child {
+    border-radius: 0 12px 12px 0;
+}
+
+td.r { 
+    text-align:right; 
+    font-weight:500; 
+}
+td.c { 
+    text-align:center; 
+}
+
+/* =============== STATUS COLORS (Percentage indicators) =============== */
+.g { color: #10b981; font-weight: 600; } /* green up */
+.g::before { content: '+'; }
+.rd { color: #ef4444; font-weight: 600; } /* red down */
+.gy { color: #9ca3af; font-weight: 500; } /* gray neutral */
+
+/* =============== RANK COLUMN =============== */
+.rank-cell { 
+    display:flex; 
+    align-items:center; 
+    gap:8px;
+}
+.rank-cell .mv, 
+.rank-cell .fav {
+    display: none !important;
+}
+.rk {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #ffffff;
+    min-width: 45px;
+    text-align: left;
+}
+
+/* =============== NAME & ICON =============== */
+.name-cell { 
+    display:flex; 
+    align-items:center; 
+    gap:14px; 
+}
+.ico { 
+    width:42px; 
+    height:42px; 
+    border-radius:50%; 
+    display:flex; 
+    align-items:center; 
+    justify-content:center; 
+    font-size:1.25rem; 
+    font-weight:700; 
+    color:#fff; 
+    flex-shrink:0; 
+    line-height:42px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.nm { 
+    font-size:1.05rem; 
+    font-weight:600; 
+    color:#fff; 
+}
+
+/* =============== LIVE BADGE - HIDDEN =============== */
+.live-badge { 
+    display:none !important; 
+}
+
+/* Hide status message */
+#statusMsg {
+    display: none !important;
+}
+
+/* =============== SPARKLINE =============== */
 .spark svg {
     height:46px;
     width:122px;
     display:block;
     margin:0 auto;
-    transition: all 0.25s ease;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 tbody tr:hover .spark svg {
-    filter: brightness(1.45);
+    filter: brightness(1.5) drop-shadow(0 4px 8px rgba(255, 136, 0, 0.3));
     transform: scale(1.15);
 }
 
-/* Rank fix */
-.rk {
-    font-size:1.05rem !important;
-    font-weight:700 !important;
-    color:#ddd !important;
-} 
-  /* 1. Orange border around the full STRC row - stronger match */
-tr:has(.nm span:contains("STRC")),
-tr:has(td span:contains("STRC")),
-tr:has(.nm:contains("STRC")) {
-    box-shadow: inset 0 0 0 6px #ff6600 !important;
-}
-
-/* 2. Deep orange logo for STRC */
-tr:has(.nm span:contains("STRC")) .ico,
-tr:has(td span:contains("STRC")) .ico,
-tr:has(.nm:contains("STRC")) .ico {
-    background: #ff6600 !important;
-}
-
-/* 3. Full row hover for sparkline (reacts when hovering anywhere on row) */
-tbody tr:hover .spark svg {
-    filter: brightness(1.5) !important;
-    transform: scale(1.2) !important;
-    transition: all 0.3s ease !important;
-}
-
-/* 4. Hide LIVE badge so it's just "STRC" */
-.live-badge { display: none !important; } 
-
-/* Orange border around entire STRC row - aggressive match */
-tr:has([class*="nm"]:contains("STRC")),
-tr:has(td:contains("STRC")) {
-    box-shadow: inset 0 0 0 6px #ff6600 !important; /* deep orange line around whole row */
-}
-
-/* Deep orange STRC logo (overrides yellow) */
-tr:has([class*="nm"]:contains("STRC")) .ico,
-tr:has(td:contains("STRC")) .ico {
-    background: #ff6600 !important;
-}
-
-/* Ensure LIVE badge is hidden (just "STRC") */
-.live-badge, .live-badge * { display: none !important; }    
-
-/* 1. Thick deep orange border around the full STRC row - aggressive matching */
-tr:has(td:contains('STRC')),
-tr:has(.nm:contains('STRC')),
-tr:has(span:contains('STRC')) {
-    box-shadow: inset 0 0 0 8px #ff6600 !important;
-}
-
-/* 2. Deep orange logo for STRC row */
-tr:has(td:contains('STRC')) .ico,
-tr:has(.nm:contains('STRC')) .ico,
-tr:has(span:contains('STRC')) .ico {
-    background: #ff6600 !important;
-}
-
-/* 3. Full row hover for sparkline - triggers when hovering ANYWHERE on row */
-tbody tr:hover .spark svg {
-    filter: brightness(1.5) !important;
-    transform: scale(1.2) !important;
-    transition: all 0.3s ease !important;
-}
-
-/* 4. Hide LIVE badge so text is just "STRC" */
-.live-badge { display: none !important; }    
-
-/* Orange box around STRC row - uses the class from your HTML */
+/* =============== STRC ROW - SPECIAL EMPHASIS =============== */
 tr.strc-row {
-    box-shadow: inset 0 0 0 8px #ff6600 !important;
+    background: rgba(255, 102, 0, 0.12);
+    border: 2px solid rgba(255, 102, 0, 0.3);
+    box-shadow: 0 0 30px rgba(255, 102, 0, 0.3), 0 8px 24px rgba(255, 102, 0, 0.15);
+    position: relative;
 }
 
-/* Deep orange logo for STRC */
+tr.strc-row:hover {
+    background: rgba(255, 102, 0, 0.16);
+    border-color: rgba(255, 102, 0, 0.5);
+    box-shadow: 0 0 40px rgba(255, 102, 0, 0.5), 0 12px 32px rgba(255, 102, 0, 0.25);
+}
+
 tr.strc-row .ico {
-    background: #ff6600 !important;
+    background: #f59e0b !important;
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
 }
 
-/* Full row hover for sparkline - triggers when hovering anywhere on row */
-tbody tr:hover .spark svg {
-    filter: brightness(1.5) !important;
-    transform: scale(1.2) !important;
-    transition: all 0.3s ease !important;
+tr.strc-row .nm::after {
+    content: " ⭐";
+    color: #f59e0b;
+    font-size: 0.85rem;
+    margin-left: 4px;
 }
 
-/* Hide LIVE badge so text is just "STRC" */
-.live-badge { display: none !important; }    
+/* =============== FOOTER =============== */
+.foot {
+    padding: 20px 32px;
+    font-size: 0.85rem;
+    color: #999;
+    background: rgba(0, 0, 0, 0.5);
+}
+.foot a {
+    color: #ff8800;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.foot a:hover {
+    color: #ffaa22;
+    text-decoration: underline;
+}
+.foot code {
+    background: rgba(255, 136, 0, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #ffa;
+    font-family: 'Courier New', monospace;
+}
 
-// Force orange box, deep orange logo, hide LIVE badge on STRC row after render
-function highlightSTRC() {
-  const rows = document.querySelectorAll('#tb tr');
-  rows.forEach(row => {
-    if (row.innerHTML.includes('STRC')) {
-      row.style.boxShadow = 'inset 0 0 0 6px #ff6600';  // deep orange border
-      const ico = row.querySelector('.ico');
-      if (ico) ico.style.background = '#ff6600';  // deep orange logo
-      const badge = row.querySelector('.live-badge');
-      if (badge) badge.style.display = 'none';  // hide LIVE
+/* =============== STATUS MESSAGE =============== */
+#statusMsg {
+    padding: 12px 32px;
+    font-size: 0.9rem;
+    text-align: center;
+    min-height: 24px;
+    color: #ccc;
+}
+#statusMsg.ok {
+    color: #10b981;
+    font-weight: 500;
+}
+#statusMsg.warn {
+    color: #f59e0b;
+    font-weight: 500;
+}
+
+/* =============== UPDATE TIME =============== */
+.update-time {
+    font-size: 0.85rem;
+    color: #888;
+    white-space: nowrap;
+    animation: fadeInPulse 0.6s ease-out;
+}
+
+/* =============== PHASE 2: ANIMATIONS =============== */
+
+/* Row entrance animations - staggered slide-up */
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-  });
-}
-
-// Run it after every render
-const originalRender = render;
-render = function() {
-  originalRender();
-  highlightSTRC();
-};   
-
-// Force orange box around STRC row + full-row slider + hide LIVE
-function fixSTRCRow() {
-  const rows = document.querySelectorAll('#tb tr');
-  rows.forEach(row => {
-    if (row.innerHTML.includes('STRC')) {
-      // Orange border around whole row
-      row.style.boxShadow = 'inset 0 0 0 8px #ff6600';
-      row.style.outline = '4px solid #ff6600';
-      row.style.outlineOffset = '-4px';
-
-      // Deep orange logo
-      const ico = row.querySelector('.ico');
-      if (ico) ico.style.background = '#ff6600';
-
-      // Hide LIVE badge
-      const badge = row.querySelector('.live-badge');
-      if (badge) badge.style.display = 'none';
-
-      // Full row hover for sparkline (trigger on row hover)
-      row.addEventListener('mouseenter', () => {
-        const svg = row.querySelector('.spark svg');
-        if (svg) {
-          svg.style.filter = 'brightness(1.5)';
-          svg.style.transform = 'scale(1.2)';
-          svg.style.transition = 'all 0.3s ease';
-        }
-      });
-      row.addEventListener('mouseleave', () => {
-        const svg = row.querySelector('.spark svg');
-        if (svg) {
-          svg.style.filter = '';
-          svg.style.transform = '';
-        }
-      });
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
-  });
 }
 
-// Run it after render and refresh
-const originalRender = render;
-render = function() {
-  originalRender();
-  fixSTRCRow();
-};
-const originalRefresh = refreshSTRC;
-refreshSTRC = function() {
-  originalRefresh();
-  setTimeout(fixSTRCRow, 500);  // delay to catch dynamic row
-};
-fixSTRCRow();  // initial run    
-
-/* 1. Remove extra non-bold rank movement arrows/clutter - clean bold rank only */
-.rank-cell .mv, .rank-cell .fav {
-    display: none !important;  /* hides the ▼ ▲ ★ numbers/arrows */
-}
-.rk {
-    font-size: 1.1rem !important;
-    font-weight: 700 !important;
-    color: #ffffff !important;  /* bright white bold rank */
-    min-width: 60px;
+tbody tr {
+    animation: slideUpFade 0.5s ease-out backwards;
 }
 
-/* 2. Thick deep orange box just around STRC row - follows rank changes */
-tr:has(.nm:contains("STRC")) {
-    box-shadow: 0 0 0 6px #ff6600 inset !important;
-    background: rgba(255, 102, 0, 0.08) !important;  /* subtle orange tint fill */
-}  
+/* Stagger each row */
+tbody tr:nth-child(1) { animation-delay: 0.05s; }
+tbody tr:nth-child(2) { animation-delay: 0.1s; }
+tbody tr:nth-child(3) { animation-delay: 0.15s; }
+tbody tr:nth-child(4) { animation-delay: 0.2s; }
+tbody tr:nth-child(5) { animation-delay: 0.25s; }
+tbody tr:nth-child(6) { animation-delay: 0.3s; }
+tbody tr:nth-child(7) { animation-delay: 0.35s; }
+tbody tr:nth-child(8) { animation-delay: 0.4s; }
+tbody tr:nth-child(9) { animation-delay: 0.45s; }
+tbody tr:nth-child(10) { animation-delay: 0.5s; }
+tbody tr:nth-child(n+11) { animation-delay: 0.5s; }
 
-/* 1. Remove movement arrows/stars in rank column - only show clean bold rank */
-.rank-cell .mv, .rank-cell .fav {
-    display: none !important;
-}
-.rk {
-    font-size: 1.1rem !important;
-    font-weight: 700 !important;
-    color: #ffffff !important;
-    min-width: 60px;
-    text-align: left;
-}
-
-/* 2. Thick deep orange border around the entire STRC row */
-tr.strc-row,
-tr:has(.nm:contains("STRC")) {
-    box-shadow: inset 0 0 0 8px #ff6600 !important;
-    background: rgba(255, 102, 0, 0.08) !important; /* subtle orange tint fill */
-}
-
-/* 3. Deep orange logo for STRC row */
-tr.strc-row .ico,
-tr:has(.nm:contains("STRC")) .ico {
-    background: #ff6600 !important;
-}  
-
-// Force deep orange box around STRC row + deep orange logo + hide LIVE
-function applySTRCFixes() {
-  const rows = document.querySelectorAll('#tb tr');
-  rows.forEach(row => {
-    if (row.innerHTML.includes('STRC')) {
-      // Thick deep orange border around whole row
-      row.style.boxShadow = 'inset 0 0 0 8px #ff6600';
-      row.style.border = '4px solid #ff6600';
-
-      // Deep orange logo
-      const ico = row.querySelector('.ico');
-      if (ico) ico.style.background = '#ff6600';
-
-      // Hide LIVE badge
-      const badge = row.querySelector('.live-badge');
-      if (badge) badge.style.display = 'none';
+/* Pulse animation for timestamp updates */
+@keyframes fadeInPulse {
+    0% {
+        opacity: 0;
+        color: #ff8800;
+        text-shadow: 0 0 10px rgba(255, 136, 0, 0.8);
     }
-  });
+    50% {
+        color: #ffaa22;
+        text-shadow: 0 0 15px rgba(255, 170, 34, 0.6);
+    }
+    100% {
+        opacity: 1;
+        color: #888;
+        text-shadow: none;
+    }
 }
 
-// Run after every render and refresh
-const originalRender = render;
-render = function() {
-  originalRender();
-  applySTRCFixes();
-};
-
-const originalRefresh = refreshSTRC;
-refreshSTRC = function() {
-  originalRefresh();
-  setTimeout(applySTRCFixes, 300); // small delay for row to exist
-};
-
-applySTRCFixes(); // run once on load  
-
-
-// Force orange border around STRC row only + deep orange logo
-function highlightSTRCRow() {
-  const rows = document.querySelectorAll('#tb tr');
-  rows.forEach(row => {
-    if (row.innerHTML.includes('STRC')) {
-      // Thick deep orange border around the entire row
-      row.style.boxShadow = 'inset 0 0 0 8px #ff6600';
-      row.style.border = '4px solid #ff6600';
-
-      // Deep orange logo
-      const ico = row.querySelector('.ico');
-      if (ico) ico.style.background = '#ff6600';
-
-      // Hide LIVE badge
-      const badge = row.querySelector('.live-badge');
-      if (badge) badge.style.display = 'none';
-    }
-  });
+/* Refresh button spinner animation */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-// Hook it to render and refresh
-const originalRender = render;
-render = function() {
-  originalRender();
-  highlightSTRCRow();
-};
+.refresh-btn #ri.spin {
+    animation: spin 0.8s linear;
+}
 
-const originalRefresh = refreshSTRC;
-refreshSTRC = function() {
-  originalRefresh();
-  setTimeout(highlightSTRCRow, 100); // small delay for DOM update
-};
-
-highlightSTRCRow(); // initial run
-
-// Force deep orange border around STRC row + logo + hide LIVE
-window.addEventListener('load', () => {
-  const rows = document.querySelectorAll('#tb tr');
-  rows.forEach(row => {
-    if (row.innerHTML.includes('STRC')) {
-      // Thick deep orange border around whole row
-      row.style.boxShadow = 'inset 0 0 0 8px #ff6600';
-      row.style.border = '4px solid #ff6600';
-
-      // Deep orange logo
-      const ico = row.querySelector('.ico');
-      if (ico) ico.style.background = '#ff6600';
-
-      // Hide LIVE badge
-      const badge = row.querySelector('.live-badge');
-      if (badge) badge.style.display = 'none';
+/* Loading skeleton animation */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
     }
-  });
-});
-
-// Run again after refresh button click
-const originalRefresh = refreshSTRC;
-refreshSTRC = function() {
-  originalRefresh();
-  setTimeout(() => {
-    const rows = document.querySelectorAll('#tb tr');
-    rows.forEach(row => {
-      if (row.innerHTML.includes('STRC')) {
-        row.style.boxShadow = 'inset 0 0 0 8px #ff6600';
-        row.style.border = '4px solid #ff6600';
-        const ico = row.querySelector('.ico');
-        if (ico) ico.style.background = '#ff6600';
-        const badge = row.querySelector('.live-badge');
-        if (badge) badge.style.display = 'none';
-      }
-    });
-  }, 500); // small delay for row to render
-};  
-
-// Force fixes on STRC row every 2 seconds until it sticks
-setInterval(() => {
-  const rows = document.querySelectorAll('#tb tr');
-  rows.forEach(row => {
-    if (row.innerHTML.includes('STRC')) {
-      // Thick deep orange border around whole row
-      row.style.boxShadow = 'inset 0 0 0 8px #ff6600';
-      row.style.border = '4px solid #ff6600';
-
-      // Deep orange logo
-      const ico = row.querySelector('.ico');
-      if (ico) ico.style.background = '#ff6600';
-
-      // Hide LIVE badge
-      const badge = row.querySelector('.live-badge');
-      if (badge) badge.style.display = 'none';
+    100% {
+        background-position: 1000px 0;
     }
-  });
-}, 2000); // runs every 2 seconds
-    
+}
+
+.skeleton {
+    background: linear-gradient(90deg, 
+        rgba(255,136,0,0.05) 0%, 
+        rgba(255,136,0,0.15) 50%, 
+        rgba(255,136,0,0.05) 100%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+}
+
+/* Enhanced hover scale effect for icon */
+.ico {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                box-shadow 0.3s ease;
+}
+
+tbody tr:hover .ico {
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Sparkline gradient setup for SVG fills */
+.spark-gradient-up {
+    stop-color: #10b981;
+}
+.spark-gradient-down {
+    stop-color: #ec4899;
+}
+
+/* Smooth data update animation */
+@keyframes dataUpdate {
+    0% {
+        background-color: rgba(255, 136, 0, 0.2);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+td.updating {
+    animation: dataUpdate 0.6s ease-out;
+}
+
+/* Tooltip styling for sparklines */
+.spark-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    pointer-events: none;
+    z-index: 1000;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 136, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
   </style>
 </head>
 <body>
@@ -437,6 +508,16 @@ setInterval(() => {
     <span id="updateTime" class="update-time">—</span>
   </div>
 </div>
+
+<!-- X Profile Header -->
+<div class="x-profile-header">
+  <a href="https://x.com/PreferredPath" target="_blank" class="x-profile-link">
+    <div class="x-profile-content">
+      <div class="x-profile-text">Click here to follow @PreferredPath</div>
+    </div>
+  </a>
+</div>
+
 <div id="statusMsg"></div>
 
 <div class="table-wrap">
@@ -458,9 +539,39 @@ setInterval(() => {
 </div>
 
 <div class="foot">
-  Design inspired by <a href="https://companiesmarketcap.com/assets-by-market-cap/" target="_blank">companiesmarketcap.com</a>
-  &bull; STRC price from Yahoo Finance &bull; Market cap = price &times; <code>sharesOutstanding</code> (update weekly from <a href="https://www.strategy.com/strc" target="_blank">strategy.com/strc</a> or <a href="https://strc.live/ticker/strc" target="_blank">strc.live</a>)
-  &bull; Neighboring companies are a static snapshot from companiesmarketcap.com &bull; Not financial advice
+  <div class="foot-content">
+    <!-- About Section -->
+    <div class="foot-section">
+      <div class="foot-title">About STRC Tracker</div>
+      <p class="foot-text">Real-time market cap rankings showing where <strong>$STRC (Strategy)</strong> ranks among global assets.</p>
+      <p class="foot-text">Updates: Mon/Thu or after 8-K filings</p>
+    </div>
+
+    <!-- Data Sources -->
+    <div class="foot-section">
+      <div class="foot-title">Data Sources</div>
+      <p class="foot-text"><a href="https://companiesmarketcap.com/assets-by-market-cap/" target="_blank" class="foot-link">companiesmarketcap.com</a> — Asset rankings base</p>
+      <p class="foot-text"><a href="https://finance.yahoo.com" target="_blank" class="foot-link">Yahoo Finance</a> — Live STRC pricing</p>
+      <p class="foot-text"><a href="https://www.strategy.com/strc" target="_blank" class="foot-link">strategy.com/strc</a> — Shares outstanding</p>
+    </div>
+
+    <!-- Resources -->
+    <div class="foot-section">
+      <div class="foot-title">STRC Resources</div>
+      <p class="foot-text"><a href="https://strc.live/ticker/strc" target="_blank" class="foot-link">STRC Live Ticker</a></p>
+      <p class="foot-text"><a href="https://www.strategy.com/" target="_blank" class="foot-link">Strategy.com</a></p>
+      <p class="foot-text"><a href="https://bitcoin.org" target="_blank" class="foot-link">Bitcoin Info</a></p>
+      <div class="social-links">
+        <a href="https://twitter.com/search?q=STRC" target="_blank" class="social-btn" title="Twitter/X">𝕏</a>
+        <a href="https://www.reddit.com/r/strategytoken/" target="_blank" class="social-btn" title="Reddit">R</a>
+        <a href="https://discord.gg" target="_blank" class="social-btn" title="Discord">D</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    Market cap = price × <code>sharesOutstanding</code> • Not financial advice • Last snapshot: Mar 17, 2026 • <a href="https://github.com" target="_blank" style="color: #ff8800;">View on GitHub</a>
+  </div>
 </div>
 
 <script>
@@ -548,6 +659,7 @@ function fmtPct(v) {
 }
 
 // Sparkline: teal (#10b981) for up/flat 7d, pink (#ec4899) for down 7d
+// Now with gradient fills for visual richness
 function spark(data, pct7) {
   if (!data || data.length < 2) return '';
   const w = 110, h = 36, p = 3;
@@ -559,9 +671,21 @@ function spark(data, pct7) {
   }).join(' ');
   const up = (pct7 || 0) >= 0;
   const stroke = up ? '#10b981' : '#ec4899';
-  const fill = up ? 'rgba(16,185,129,0.10)' : 'rgba(236,72,153,0.10)';
+  const fillColor = up ? 'rgba(16,185,129,0.15)' : 'rgba(236,72,153,0.15)';
+  const gradId = `grad-${Math.random().toString(36).substr(2, 9)}`;
   const close = `${(p+(data.length-1)/(data.length-1)*(w-2*p)).toFixed(1)},${h} ${p},${h}`;
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polygon fill="${fill}" points="${pts} ${close}"/><polyline fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="${pts}"/></svg>`;
+  
+  // Enhanced SVG with gradient defs and smooth animations
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" class="sparkline-chart">
+    <defs>
+      <linearGradient id="${gradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" style="stop-color:${stroke};stop-opacity:0.3" />
+        <stop offset="100%" style="stop-color:${stroke};stop-opacity:0.05" />
+      </linearGradient>
+    </defs>
+    <polygon fill="url(#${gradId})" points="${pts} ${close}" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));"/>
+    <polyline fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="${pts}" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" />
+  </svg>`;
 }
 
 // ── Render ──
@@ -608,6 +732,21 @@ function render() {
       <td class="c spark">${sparkHtml}</td>
     </tr>`;
   }).join('');
+
+  // ── Update header stats (Phase 3) ──
+  const strcrankEl = document.getElementById('strcRank');
+  const strcmcapEl = document.getElementById('strcMcap');
+  const strcpriceEl = document.getElementById('strcPrice');
+  const strcchangeEl = document.getElementById('strcChange');
+  
+  if (strcrankEl) strcrankEl.textContent = `#${strcAsset.rank}`;
+  if (strcmcapEl) strcmcapEl.textContent = fmtMcap(strcAsset.mcap);
+  if (strcpriceEl) strcpriceEl.textContent = fmtPrice(strcAsset.price);
+  if (strcchangeEl) {
+    const chg = strcAsset.pct24;
+    strcchangeEl.textContent = fmtPct(chg).replace(/<[^>]*>/g, ''); // strip HTML tags
+    strcchangeEl.style.color = chg >= 0 ? '#10b981' : '#ef4444';
+  }
 }
 
 // ── STRC fetch ──
@@ -651,7 +790,9 @@ async function refreshSTRC() {
   const btn = document.getElementById('refreshBtn');
   const ri = document.getElementById('ri');
   const msg = document.getElementById('statusMsg');
-  btn.disabled = true; ri.classList.add('spin');
+  const timeEl = document.getElementById('updateTime');
+  btn.disabled = true; 
+  ri.classList.add('spin');
 
   const data = await fetchSTRC();
   strcAsset.price = data.price;
@@ -661,7 +802,13 @@ async function refreshSTRC() {
   try { localStorage.setItem('strc', JSON.stringify(data)); } catch(e) {}
 
   const now = new Date().toLocaleString('en-US', { timeZone:'America/Los_Angeles', month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit', timeZoneName:'short' });
-  document.getElementById('updateTime').textContent = now;
+  
+  // Trigger animation on timestamp update
+  timeEl.style.animation = 'none';
+  setTimeout(() => {
+    timeEl.textContent = now;
+    timeEl.style.animation = 'fadeInPulse 0.6s ease-out';
+  }, 10);
 
   const s = (STRC_CFG.shares/1e6).toFixed(1);
   if (data.src === 'live' || data.src === 'chart') {
@@ -672,8 +819,14 @@ async function refreshSTRC() {
     msg.className = 'warn';
   }
 
+  // Re-render with new data
   render();
-  btn.disabled = false; ri.classList.remove('spin');
+  
+  // Remove spin after render completes
+  setTimeout(() => {
+    btn.disabled = false; 
+    ri.classList.remove('spin');
+  }, 300);
 }
 
 // ── Init ──
