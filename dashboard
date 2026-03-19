@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Seen – AI Visibility Report · Westgate Auto Group</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --base:#0a0b0f;--card:#13141a;--raised:#1a1b23;--border:#1e2030;--hover:#21222e;
+  --red:#ef4444;--red-dim:#7f1d1d;--amber:#f59e0b;--green:#22c55e;--blue:#6366f1;
+  --ink1:#f1f5f9;--ink2:#94a3b8;--ink3:#475569;
+}
+body{background:var(--base);color:var(--ink1);font-family:'Inter',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--card)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px}
+.btn{cursor:pointer;border:none;font-family:inherit;transition:all .15s ease}
+/* Score ring animation */
+.ring-path{transition:stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1)}
+/* Bar width animation */
+.bar-anim{transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+/* Fade-in */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .4s ease forwards}
+/* Heatmap cell */
+.h-cell{cursor:pointer;border-radius:6px;border:1px solid;display:flex;align-items:center;justify-content:center;aspect-ratio:1;transition:transform .15s,box-shadow .15s}
+.h-cell:hover{transform:scale(1.18);box-shadow:0 0 0 2px rgba(255,255,255,.15);z-index:5}
+/* Modal overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modal{animation:slideUp .28s ease forwards}
+/* Table */
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left;padding:10px 14px;font-size:12px}
+thead th{background:var(--raised);color:var(--ink3);font-weight:500;cursor:pointer;user-select:none;white-space:nowrap}
+thead th:hover{color:var(--ink2)}
+tbody tr{border-top:1px solid var(--border);transition:background .1s}
+tbody tr:hover{background:rgba(255,255,255,.025)}
+/* Tabs */
+.tab{background:none;color:var(--ink3);border-bottom:2px solid transparent;padding:12px 16px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;transition:all .15s}
+.tab.active{color:var(--ink1);border-bottom-color:var(--red)}
+.tab:hover:not(.active){color:var(--ink2)}
+/* Input */
+input,select{background:var(--raised);border:1px solid var(--border);border-radius:8px;color:var(--ink1);font-family:inherit;font-size:13px;padding:8px 12px;outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--blue)}
+input::placeholder{color:var(--ink3)}
+/* Pill */
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500;border:1px solid}
+/* Scrollable table wrapper */
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+/* Print */
+@media print{.no-print{display:none!important}body{background:white!important;color:black!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/recharts@2.10.4/umd/Recharts.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useMemo } = React
+const {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, LabelList,
+  ReferenceLine, ResponsiveContainer, RadarChart, Radar, PolarGrid,
+  PolarAngleAxis, Legend
+} = Recharts
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const DATA = {
+  meta: { client:"Westgate Auto Group", subtitle:"Honda + Toyota · Phoenix, AZ", date:"March 2026", reportType:"AI Visibility Report" },
+  score: { overall:16, found:7, partial:12, notFound:21, totalSearches:40 },
+  kpis: [
+    { value:"21", unit:"of 40 searches", label:"returned no AI result", delta:"52% miss rate", icon:"📉" },
+    { value:"$40K", unit:"per month", label:"in ads AI skips over", delta:"est. based on spend", icon:"💸" },
+    { value:"4.4×", unit:"higher conversion", label:"AI referrals vs paid clicks", delta:"industry benchmark", icon:"⚡" }
+  ],
+  platforms: ["ChatGPT","Gemini","Perplexity","Grok","Apple/Siri","Google Search","Google Maps","Bing Copilot"],
+  queries: ["Brand name search","\"Best Honda dealer Phoenix\"","\"Toyota dealer Phoenix AZ\"","\"Used car dealer near me\"","\"Car financing bad credit\""],
+  heatmap: [
+    { query:"Brand name search", results:[
+      {s:"partial",detail:"ChatGPT mentions Westgate in 2 of 5 test prompts, without direct recommendation.",excerpt:"\"There are several Honda dealerships in Phoenix including Camelback Honda and other options in the metro area.\""},
+      {s:"partial",detail:"Gemini surfaces Westgate in local pack but not in conversational responses.",excerpt:"\"For Honda in Phoenix, you might consider Camelback Honda or Courtesy Honda. Westgate appears in maps results.\""},
+      {s:"partial",detail:"Perplexity includes Westgate in map results but the AI summary doesn't name them.",excerpt:"\"Phoenix has multiple Toyota and Honda dealers. Here are the top-rated options based on reviews...\""},
+      {s:"partial",detail:"Grok includes Westgate inconsistently, lacking business description or contact info.",excerpt:"\"Westgate Auto Group operates both Honda and Toyota franchises in the Phoenix west valley area.\""},
+      {s:"notFound",detail:"Apple/Siri does not return Westgate in voice or typed brand queries.",excerpt:"No result returned for this query type."},
+      {s:"found",detail:"Google Search returns Westgate in organic results, map pack, and branded queries.",excerpt:"\"Westgate Auto Group – Phoenix Honda & Toyota Dealer | New & Used Cars\""},
+      {s:"found",detail:"Google Maps shows Westgate with photos, hours, and reviews. 4.3★ displayed prominently.",excerpt:"\"Westgate Honda · 4.3★ · 1,240 reviews · Open until 8pm\""},
+      {s:"partial",detail:"Bing Copilot sometimes surfaces Westgate but often defers to AutoNation.",excerpt:"\"For Honda in Phoenix, AutoNation Honda Chandler and Westgate Honda are both options to consider.\""}
+    ]},
+    { query:"\"Best Honda dealer Phoenix\"", results:[
+      {s:"notFound",detail:"ChatGPT recommends AutoNation and Camelback Honda. Westgate not mentioned in 5 tests.",excerpt:"\"The most frequently recommended Honda dealers in Phoenix include Camelback Honda, AutoNation Honda Chandler, and Courtesy Honda.\""},
+      {s:"notFound",detail:"Gemini AI overview lists 3–4 dealers. Westgate absent from all 5 test prompts.",excerpt:"\"Top Honda dealers in Phoenix: Camelback Honda (4.7★), AutoNation Honda Chandler (4.5★), Earnhardt Honda (4.4★).\""},
+      {s:"notFound",detail:"Perplexity pulls from review sites. Westgate Honda not surfaced; competitors rank higher.",excerpt:"\"Based on customer reviews, the top Honda dealers in Phoenix are Camelback Honda and AutoNation Honda Chandler.\""},
+      {s:"notFound",detail:"Grok returns competitors with stronger AI-readable content. No Westgate.",excerpt:"\"Honda dealers in Phoenix with strong reputations include Camelback Honda and Courtesy Honda.\""},
+      {s:"notFound",detail:"Apple/Siri Maps shows Camelback Honda as top result. Westgate not in top results.",excerpt:"No voice result. Maps shows Camelback Honda as top result."},
+      {s:"partial",detail:"Google Search shows Westgate in organic results but not top 3 or featured snippets.",excerpt:"Westgate appears at position 6–8 for this query."},
+      {s:"partial",detail:"Google Maps ranks Westgate 4th–5th. Competitors with more reviews rank higher.",excerpt:"\"Westgate Honda · 4.3★ · 1,240 reviews\" (below Camelback Honda 4.7★ · 3,891 reviews)"},
+      {s:"notFound",detail:"Bing Copilot names competitors. Westgate not mentioned.",excerpt:"\"The highest-rated Honda dealers in Phoenix are Camelback Honda and AutoNation Honda Chandler.\""}
+    ]},
+    { query:"\"Toyota dealer Phoenix AZ\"", results:[
+      {s:"notFound",detail:"Earnhardt and Camelback Toyota cited by ChatGPT. No Westgate mention.",excerpt:"\"Earnhardt Toyota in Mesa and Camelback Toyota are well-regarded options in the Phoenix area.\""},
+      {s:"notFound",detail:"Gemini lists competitors. Westgate absent despite stronger structured data needs.",excerpt:"\"Top Toyota dealers near Phoenix include Earnhardt Toyota, Chapman Toyota, and Camelback Toyota.\""},
+      {s:"notFound",detail:"Perplexity doesn't surface Westgate Toyota. Missing from all 5 test prompts.",excerpt:"\"For Toyota in Phoenix, Earnhardt Toyota (4.8★) and Camelback Toyota (4.6★) are frequently recommended.\""},
+      {s:"notFound",detail:"Grok returns Earnhardt and Chapman Toyota. No mention of Westgate.",excerpt:"\"Toyota dealers in the Phoenix west valley include Camelback Toyota and Chapman Toyota Scottsdale.\""},
+      {s:"partial",detail:"Siri/Apple Maps returns Westgate Toyota in location search but not conversational queries.",excerpt:"Appears in maps near Westgate area, not in conversational response."},
+      {s:"partial",detail:"Google Search shows Westgate Toyota but below the fold. Featured snippet goes to competitor.",excerpt:"Westgate Toyota appears at position 5–7 for this query."},
+      {s:"found",detail:"Google Maps shows Westgate Toyota with good visibility, photos, and hours.",excerpt:"\"Westgate Toyota · 4.2★ · 876 reviews · Dealer · Open until 9pm\""},
+      {s:"notFound",detail:"Bing Copilot mentions Earnhardt and Chapman Toyota. Westgate not mentioned.",excerpt:"\"Toyota dealers in Phoenix with strong ratings include Earnhardt Toyota and Chapman Toyota.\""}
+    ]},
+    { query:"\"Used car dealer near me\"", results:[
+      {s:"notFound",detail:"ChatGPT gives general advice without naming Westgate or any specific dealer.",excerpt:"\"When looking for a used car dealer, I recommend checking CarGurus, AutoTrader, and local dealers with strong reviews.\""},
+      {s:"notFound",detail:"Gemini provides generic guidance. No Westgate or specific local dealer surfaced.",excerpt:"\"For used cars near Phoenix, I'd suggest checking AutoTrader or visiting dealers like CarMax.\""},
+      {s:"notFound",detail:"Perplexity returns national platforms (CarMax, Carvana). No local dealers named.",excerpt:"\"The best used car options near Phoenix include CarMax locations and Carvana's Phoenix delivery zone.\""},
+      {s:"notFound",detail:"Grok gives general tips. No local dealer recommendations including Westgate.",excerpt:"\"For used cars I'd suggest comparing prices on CarGurus first, then visiting local dealerships.\""},
+      {s:"partial",detail:"Apple Maps returns Westgate in location results but not via voice query.",excerpt:"Appears in proximity-based Maps results, not in conversational result."},
+      {s:"partial",detail:"Google Search shows Westgate but national aggregators dominate the page.",excerpt:"Westgate appears in local pack but below CarMax and AutoTrader ads."},
+      {s:"partial",detail:"Google Maps shows Westgate by proximity but review volume limits placement.",excerpt:"\"Westgate Auto Group · 4.2★ · 1,240 reviews · Car dealer\""},
+      {s:"notFound",detail:"Bing Copilot recommends CarMax and national platforms. No local dealer named.",excerpt:"\"For used cars in Phoenix, CarMax and Carvana offer no-haggle pricing and good selection.\""}
+    ]},
+    { query:"\"Car financing bad credit\"", results:[
+      {s:"notFound",detail:"ChatGPT gives generic financing advice. Westgate's financing programs are invisible to AI.",excerpt:"\"For car financing with bad credit, consider credit unions, buy-here-pay-here dealers, or improving your score first.\""},
+      {s:"notFound",detail:"Gemini provides tips without naming dealers. Westgate financing programs not surfaced.",excerpt:"\"Bad credit auto financing options include secured auto loans, co-signers, and specialized lenders like DriveTime.\""},
+      {s:"notFound",detail:"Perplexity cites DriveTime and CarMax financing. No Westgate financing content.",excerpt:"\"For bad credit auto loans in Phoenix, DriveTime and JD Byrider specialize in this segment.\""},
+      {s:"notFound",detail:"Grok gives general advice. No specific dealer financing for Phoenix area.",excerpt:"\"Auto financing with bad credit is possible. Look for dealers advertising 'second chance financing.'\""},
+      {s:"notFound",detail:"Siri returns generic results. No Westgate financing content surfaced.",excerpt:"No specific result for this query type."},
+      {s:"notFound",detail:"Google Search shows DriveTime and JD Byrider ads. Westgate doesn't rank for this query.",excerpt:"Westgate does not appear on page 1 for bad credit financing queries."},
+      {s:"notFound",detail:"Google Maps not applicable for financing queries.",excerpt:"Maps not applicable for this query type."},
+      {s:"notFound",detail:"Bing Copilot recommends national financing platforms. Local dealers not surfaced.",excerpt:"\"For bad credit auto financing, consider Capital One Auto Finance, Credit Acceptance, or DriveTime.\""}
+    ]}
+  ],
+  velocity: [
+    {name:"Westgate Auto Group",value:3.2,isClient:true},
+    {name:"AutoNation Tempe",value:8.7,isClient:false},
+    {name:"Camelback Honda",value:6.1,isClient:false},
+    {name:"Earnhardt Toyota",value:5.4,isClient:false}
+  ],
+  findings: [
+    {platform:"ChatGPT",query:"Brand name search",status:"partial",score:40,issue:"Inconsistent mentions",recommendation:"Add structured FAQ content targeting brand queries"},
+    {platform:"ChatGPT",query:"Best Honda dealer Phoenix",status:"notFound",score:0,issue:"Not present",recommendation:"Create AI-optimized dealer comparison content"},
+    {platform:"ChatGPT",query:"Toyota dealer Phoenix AZ",status:"notFound",score:0,issue:"Not present",recommendation:"Publish Toyota-specific landing pages with schema markup"},
+    {platform:"ChatGPT",query:"Used car dealer near me",status:"notFound",score:0,issue:"Not present",recommendation:"Create used inventory content with local context"},
+    {platform:"ChatGPT",query:"Car financing bad credit",status:"notFound",score:0,issue:"Not present",recommendation:"Publish financing FAQ content targeting this query"},
+    {platform:"Gemini",query:"Brand name search",status:"partial",score:40,issue:"Maps not AI overview",recommendation:"Optimize Google Business Profile for AI summaries"},
+    {platform:"Gemini",query:"Best Honda dealer Phoenix",status:"notFound",score:0,issue:"Not in AI overview",recommendation:"Earn more reviews to improve Gemini ranking signals"},
+    {platform:"Gemini",query:"Toyota dealer Phoenix AZ",status:"notFound",score:0,issue:"Not in AI overview",recommendation:"Add Toyota-specific structured data to site"},
+    {platform:"Gemini",query:"Used car dealer near me",status:"notFound",score:0,issue:"Not present",recommendation:"Expand Google My Business inventory feed"},
+    {platform:"Gemini",query:"Car financing bad credit",status:"notFound",score:0,issue:"Not present",recommendation:"Add dedicated financing page with FAQ schema"},
+    {platform:"Perplexity",query:"Brand name search",status:"partial",score:30,issue:"Map results only",recommendation:"Build inbound links from local directories"},
+    {platform:"Perplexity",query:"Best Honda dealer Phoenix",status:"notFound",score:0,issue:"Not present",recommendation:"Get listed on DealerRater and Cars.com with full profiles"},
+    {platform:"Perplexity",query:"Toyota dealer Phoenix AZ",status:"notFound",score:0,issue:"Not present",recommendation:"Increase review velocity on Google and Yelp"},
+    {platform:"Perplexity",query:"Used car dealer near me",status:"notFound",score:0,issue:"Not present",recommendation:"Add AI-readable inventory summaries to site"},
+    {platform:"Perplexity",query:"Car financing bad credit",status:"notFound",score:0,issue:"Not present",recommendation:"Publish educational financing content"},
+    {platform:"Grok",query:"Brand name search",status:"partial",score:35,issue:"Mentioned without details",recommendation:"Ensure consistent NAP data across all directories"},
+    {platform:"Grok",query:"Best Honda dealer Phoenix",status:"notFound",score:0,issue:"Not present",recommendation:"Target automotive forums and community discussions"},
+    {platform:"Grok",query:"Toyota dealer Phoenix AZ",status:"notFound",score:0,issue:"Not present",recommendation:"Create shareable content about Toyota ownership in Phoenix"},
+    {platform:"Grok",query:"Used car dealer near me",status:"notFound",score:0,issue:"Not present",recommendation:"Add social proof content with local context"},
+    {platform:"Grok",query:"Car financing bad credit",status:"notFound",score:0,issue:"Not present",recommendation:"Address financing FAQs in blog content"},
+    {platform:"Apple/Siri",query:"Brand name search",status:"notFound",score:0,issue:"Not in voice results",recommendation:"Register on Apple Maps with complete business data"},
+    {platform:"Apple/Siri",query:"Best Honda dealer Phoenix",status:"notFound",score:0,issue:"Not present",recommendation:"Complete Apple Maps Connect profile"},
+    {platform:"Apple/Siri",query:"Toyota dealer Phoenix AZ",status:"partial",score:25,issue:"Maps only",recommendation:"Add Siri-optimized business descriptions"},
+    {platform:"Apple/Siri",query:"Used car dealer near me",status:"partial",score:20,issue:"Proximity only",recommendation:"Add inventory data to Apple Maps listing"},
+    {platform:"Apple/Siri",query:"Car financing bad credit",status:"notFound",score:0,issue:"Not present",recommendation:"Low priority — Siri not used for financing"},
+    {platform:"Google Search",query:"Brand name search",status:"found",score:90,issue:"Strong branded presence",recommendation:"Maintain — protect brand terms with ads"},
+    {platform:"Google Search",query:"Best Honda dealer Phoenix",status:"partial",score:45,issue:"Position 6–8, not map pack",recommendation:"Build more 5-star reviews to enter map pack top 3"},
+    {platform:"Google Search",query:"Toyota dealer Phoenix AZ",status:"partial",score:50,issue:"Below the fold",recommendation:"On-page SEO improvements for Toyota pages"},
+    {platform:"Google Search",query:"Used car dealer near me",status:"partial",score:55,issue:"Below national platforms",recommendation:"Expand used car inventory pages and local content"},
+    {platform:"Google Search",query:"Car financing bad credit",status:"notFound",score:0,issue:"Not ranking",recommendation:"Create dedicated bad credit financing landing page"},
+    {platform:"Google Maps",query:"Brand name search",status:"found",score:85,issue:"Good presence, 4.3★",recommendation:"Increase review volume to close gap with competitors"},
+    {platform:"Google Maps",query:"Best Honda dealer Phoenix",status:"partial",score:40,issue:"Ranked 4th–5th",recommendation:"Review volume is the gap — 3x current pace needed"},
+    {platform:"Google Maps",query:"Toyota dealer Phoenix AZ",status:"found",score:80,issue:"Decent ranking 4.2★",recommendation:"Add more photos and complete service attributes"},
+    {platform:"Google Maps",query:"Used car dealer near me",status:"partial",score:45,issue:"Proximity helps, reviews limit",recommendation:"Respond to all reviews, increase response rate"},
+    {platform:"Google Maps",query:"Car financing bad credit",status:"notFound",score:0,issue:"N/A for Maps",recommendation:"N/A — Maps not used for financing queries"},
+    {platform:"Bing Copilot",query:"Brand name search",status:"partial",score:35,issue:"Mentioned alongside competitors",recommendation:"Submit business data to Bing Places"},
+    {platform:"Bing Copilot",query:"Best Honda dealer Phoenix",status:"notFound",score:0,issue:"Not present",recommendation:"Build Bing-indexed content and Bing Places listing"},
+    {platform:"Bing Copilot",query:"Toyota dealer Phoenix AZ",status:"notFound",score:0,issue:"Not present",recommendation:"Ensure Bing crawler can index site"},
+    {platform:"Bing Copilot",query:"Used car dealer near me",status:"notFound",score:0,issue:"Not present",recommendation:"Add local business schema for Bing"},
+    {platform:"Bing Copilot",query:"Car financing bad credit",status:"notFound",score:0,issue:"Not present",recommendation:"Low Bing volume — deprioritize vs ChatGPT/Google"}
+  ],
+  internal: {
+    competitorScores: [
+      {name:"AutoNation Tempe",overall:68,chatgpt:72,gemini:71,perplexity:65,grok:58,apple:44,googleSearch:89,googleMaps:77,bing:62},
+      {name:"Camelback Honda",overall:61,chatgpt:70,gemini:65,perplexity:60,grok:52,apple:38,googleSearch:84,googleMaps:72,bing:55},
+      {name:"Earnhardt Toyota",overall:54,chatgpt:63,gemini:61,perplexity:55,grok:48,apple:32,googleSearch:78,googleMaps:68,bing:50},
+      {name:"Westgate Auto Group",overall:16,chatgpt:8,gemini:10,perplexity:7,grok:9,apple:9,googleSearch:48,googleMaps:58,bing:7}
+    ],
+    priorityActions: [
+      {p:1,action:"Claim and complete DealerRater profile",impact:"High",effort:"Low",timeframe:"Week 1",gain:"+12 pts"},
+      {p:2,action:"Publish AI-optimized FAQ pages (Honda, Toyota, Financing)",impact:"High",effort:"Medium",timeframe:"Month 1",gain:"+18 pts"},
+      {p:3,action:"Launch review velocity campaign (50 new reviews/month)",impact:"High",effort:"Medium",timeframe:"Ongoing",gain:"+15 pts"},
+      {p:4,action:"Complete Apple Maps Connect profile",impact:"Medium",effort:"Low",timeframe:"Week 2",gain:"+6 pts"},
+      {p:5,action:"Add LocalBusiness + AutoDealer schema markup",impact:"High",effort:"Medium",timeframe:"Month 1",gain:"+14 pts"},
+      {p:6,action:"Create bad-credit financing landing page with FAQ schema",impact:"Medium",effort:"Low",timeframe:"Week 3",gain:"+8 pts"},
+      {p:7,action:"Submit Bing Places listing and verify crawl access",impact:"Low",effort:"Low",timeframe:"Week 2",gain:"+5 pts"},
+      {p:8,action:"Build 8 direct FAQ answers for common AI search prompts",impact:"High",effort:"High",timeframe:"Month 2",gain:"+20 pts"}
+    ]
+  }
+}
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+const STATUS = {
+  found:    {bg:"rgba(34,197,94,.15)",border:"rgba(34,197,94,.35)",color:"#22c55e",label:"Found"},
+  partial:  {bg:"rgba(245,158,11,.15)",border:"rgba(245,158,11,.35)",color:"#f59e0b",label:"Partial"},
+  notFound: {bg:"rgba(239,68,68,.12)",border:"rgba(127,29,29,.45)",color:"#ef4444",label:"Not Found"}
+}
+const COMP_COLORS = ["#6366f1","#8b5cf6","#a78bfa","#ef4444"]
+
+function useCountUp(target, duration=1200, delay=0){
+  const [val, setVal]=useState(0)
+  const done=useRef(false)
+  useEffect(()=>{
+    if(done.current)return; done.current=true
+    const n=parseFloat(String(target).replace(/[^0-9.]/g,""))
+    if(isNaN(n)){setVal(target);return}
+    const t=setTimeout(()=>{
+      const start=performance.now()
+      const tick=now=>{
+        const p=Math.min((now-start)/duration,1)
+        const e=1-Math.pow(1-p,3)
+        setVal(Math.round(e*n))
+        if(p<1)requestAnimationFrame(tick); else setVal(n)
+      }
+      requestAnimationFrame(tick)
+    },delay)
+    return()=>clearTimeout(t)
+  },[])
+  return val
+}
+
+// ─── SCORE RING ────────────────────────────────────────────────────────────────
+function ScoreRing({score}){
+  const [anim,setAnim]=useState(false)
+  useEffect(()=>{const t=setTimeout(()=>setAnim(true),300);return()=>clearTimeout(t)},[])
+  const R=52,C=2*Math.PI*R
+  const off=C-(anim?score/100:0)*C
+  const color=score<30?"#ef4444":score<60?"#f59e0b":"#22c55e"
+  return(
+    <svg width="130" height="130" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r={R} fill="none" stroke="#1e2030" strokeWidth="8"/>
+      <circle cx="60" cy="60" r={R} fill="none" stroke={color} strokeWidth="8"
+        strokeLinecap="round" strokeDasharray={C} strokeDashoffset={off}
+        transform="rotate(-90 60 60)" className="ring-path"/>
+      <text x="60" y="56" textAnchor="middle" fill={color} fontSize="22" fontWeight="900" fontFamily="Inter,sans-serif">{score}</text>
+      <text x="60" y="72" textAnchor="middle" fill="#475569" fontSize="9" fontFamily="Inter,sans-serif">/ 100</text>
+    </svg>
+  )
+}
+
+// ─── SCORE HERO ────────────────────────────────────────────────────────────────
+function ScoreHero({score}){
+  const [bAnim,setBanim]=useState(false)
+  useEffect(()=>{const t=setTimeout(()=>setBanim(true),400);return()=>clearTimeout(t)},[])
+  const {found,partial,notFound,totalSearches}=score
+  const fw=(found/totalSearches)*100, pw=(partial/totalSearches)*100, nw=(notFound/totalSearches)*100
+  return(
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16,marginBottom:32}}>
+      <div className="card" style={{display:"flex",alignItems:"center",gap:24}}>
+        <ScoreRing score={score.overall}/>
+        <div>
+          <p style={{color:"var(--ink3)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4}}>Visibility Score</p>
+          <p style={{color:"#ef4444",fontSize:32,fontWeight:900,lineHeight:1}}>16<span style={{color:"var(--ink3)",fontSize:16,fontWeight:400}}> / 100</span></p>
+          <p style={{color:"#ef4444",fontSize:12,marginTop:4}}>Critical — needs attention</p>
+        </div>
+      </div>
+      <div className="card" style={{display:"flex",flexDirection:"column",justifyContent:"space-between"}}>
+        <div>
+          <p style={{color:"var(--ink3)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4}}>{totalSearches} Searches Across 8 Platforms</p>
+          <p style={{color:"var(--ink2)",fontSize:13,fontWeight:500,marginBottom:16}}>Result Distribution</p>
+        </div>
+        <div>
+          <div style={{display:"flex",height:10,borderRadius:999,overflow:"hidden",gap:2}}>
+            <div style={{width:bAnim?`${fw}%`:"0%",background:"#22c55e",borderRadius:"999px 0 0 999px"}} className="bar-anim"/>
+            <div style={{width:bAnim?`${pw}%`:"0%",background:"#f59e0b",transitionDelay:".15s"}} className="bar-anim"/>
+            <div style={{width:bAnim?`${nw}%`:"0%",background:"#ef4444",borderRadius:"0 999px 999px 0",transitionDelay:".3s"}} className="bar-anim"/>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",marginTop:8,fontSize:11,color:"var(--ink3)"}}>
+            <span><span style={{display:"inline-block",width:8,height:8,borderRadius:"50%",background:"#22c55e",marginRight:5}}/>Found: {found}</span>
+            <span><span style={{display:"inline-block",width:8,height:8,borderRadius:"50%",background:"#f59e0b",marginRight:5}}/>Partial: {partial}</span>
+            <span><span style={{display:"inline-block",width:8,height:8,borderRadius:"50%",background:"#ef4444",marginRight:5}}/>Not Found: {notFound}</span>
+          </div>
+        </div>
+      </div>
+      <div className="card">
+        <p style={{color:"var(--ink3)",fontSize:11,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Score Gap vs. Leader</p>
+        <div style={{display:"flex",alignItems:"flex-end",gap:8,marginBottom:12}}>
+          <span style={{fontSize:40,fontWeight:900,color:"#ef4444",lineHeight:1}}>−52</span>
+          <span style={{color:"var(--ink3)",fontSize:12,paddingBottom:4}}>points behind AutoNation</span>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:"var(--ink3)"}}>
+          <span className="pill" style={{color:"#ef4444",borderColor:"#7f1d1d",background:"rgba(127,29,29,.3)"}}>16</span>
+          <span>vs</span>
+          <span className="pill" style={{color:"var(--ink2)",borderColor:"var(--border)",background:"var(--raised)"}}>68</span>
+          <span>market leader</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── KPI CARDS ─────────────────────────────────────────────────────────────────
+function AnimVal({value,delay}){
+  const [disp,setDisp]=useState("0")
+  const [go,setGo]=useState(false)
+  useEffect(()=>{const t=setTimeout(()=>setGo(true),delay);return()=>clearTimeout(t)},[])
+  useEffect(()=>{
+    if(!go)return
+    const n=parseFloat(String(value).replace(/[^0-9.]/g,""))
+    if(isNaN(n)){setDisp(value);return}
+    const pre=value.match(/^[^0-9]*/)?.[0]||""
+    const suf=value.match(/[^0-9.]+$/)?.[0]||""
+    const dur=1000,start=performance.now()
+    const tick=now=>{
+      const p=Math.min((now-start)/dur,1),e=1-Math.pow(1-p,3)
+      const cur=e*n
+      const fmt=Number.isInteger(n)?Math.round(cur).toLocaleString():cur.toFixed(1)
+      setDisp(`${pre}${fmt}${suf}`)
+      if(p<1)requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  },[go])
+  return <span>{disp}</span>
+}
+
+function KPICards({kpis}){
+  return(
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16,marginBottom:32}}>
+      {kpis.map((k,i)=>(
+        <div key={i} className="card fade-up" style={{animationDelay:`${i*80}ms`,borderColor:i===0?"rgba(239,68,68,.25)":"var(--border)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+            <span style={{fontSize:22}}>{k.icon}</span>
+            <span style={{fontSize:11,color:"var(--ink3)"}}>{k.delta}</span>
+          </div>
+          <p style={{fontSize:30,fontWeight:900,color:"var(--ink1)",marginBottom:4}}>
+            <AnimVal value={k.value} delay={300+i*150}/>
+          </p>
+          <p style={{fontSize:13,color:"var(--ink2)",fontWeight:500}}>{k.unit}</p>
+          <p style={{fontSize:11,color:"var(--ink3)",marginTop:4}}>{k.label}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── HEATMAP ──────────────────────────────────────────────────────────────────
+function HeatmapGrid({platforms,heatmap}){
+  const [sel,setSel]=useState(null)
+  const shortP=p=>p==="Google Search"?"G.Search":p==="Google Maps"?"G.Maps":p==="Bing Copilot"?"Bing":p==="Apple/Siri"?"Apple":p
+
+  return(
+    <div className="card" style={{marginBottom:24}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:8}}>
+        <div>
+          <h2 style={{fontSize:15,fontWeight:700,color:"var(--ink1)"}}>AI & Search Presence Grid</h2>
+          <p style={{fontSize:12,color:"var(--ink3)",marginTop:2}}>Click any cell to see the AI response sample</p>
+        </div>
+        <div style={{display:"flex",gap:16,fontSize:11,color:"var(--ink3)"}}>
+          {Object.entries(STATUS).map(([k,v])=>(
+            <span key={k} style={{display:"flex",alignItems:"center",gap:5}}>
+              <span style={{width:8,height:8,borderRadius:"50%",background:v.color,display:"inline-block"}}/>
+              {v.label}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div style={{overflowX:"auto"}}>
+        <table style={{width:"100%",minWidth:620}}>
+          <thead>
+            <tr>
+              <th style={{textAlign:"left",paddingBottom:10,paddingRight:12,fontSize:11,color:"var(--ink3)",fontWeight:500,width:180}}>Query</th>
+              {platforms.map((p,i)=>(
+                <th key={i} style={{textAlign:"center",paddingBottom:10,paddingLeft:4,paddingRight:4,fontSize:10,color:"var(--ink3)",fontWeight:500,minWidth:52}}>
+                  {shortP(p)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {heatmap.map((row,ri)=>(
+              <tr key={ri}>
+                <td style={{paddingRight:12,paddingBottom:8,fontSize:11,color:"var(--ink2)",lineHeight:1.3}}>{row.query}</td>
+                {row.results.map((r,ci)=>{
+                  const st=STATUS[r.s]||STATUS.notFound
+                  return(
+                    <td key={ci} style={{padding:"0 4px 8px"}}>
+                      <div
+                        className="h-cell"
+                        style={{background:st.bg,borderColor:st.border,width:"100%",minWidth:40,height:40}}
+                        onClick={()=>setSel({query:row.query,platform:platforms[ci],result:r})}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={st.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          {r.s==="found"?<><polyline points="20 6 9 17 4 12"/></>:r.s==="partial"?<><line x1="5" y1="12" x2="19" y2="12"/></>:<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>}
+                        </svg>
+                      </div>
+                    </td>
+                  )
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Detail Modal */}
+      {sel&&(
+        <div className="overlay" onClick={()=>setSel(null)}>
+          <div className="modal card" style={{maxWidth:480,width:"100%",border:`1px solid var(--border)`}} onClick={e=>e.stopPropagation()}>
+            {(()=>{
+              const st=STATUS[sel.result.s]||STATUS.notFound
+              return(<>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:16}}>
+                  <div>
+                    <span className="pill" style={{color:st.color,borderColor:st.color+"66",background:st.bg,marginBottom:8,display:"inline-flex"}}>{st.label}</span>
+                    <h3 style={{fontSize:16,fontWeight:700,color:"var(--ink1)"}}>{sel.platform}</h3>
+                    <p style={{fontSize:12,color:"var(--ink3)",marginTop:2}}>{sel.query}</p>
+                  </div>
+                  <button className="btn" onClick={()=>setSel(null)} style={{color:"var(--ink3)",fontSize:20,padding:"0 4px"}}>✕</button>
+                </div>
+                <div style={{background:st.bg,border:`1px solid ${st.border}`,borderRadius:8,padding:14,marginBottom:12}}>
+                  <p style={{fontSize:13,color:"var(--ink2)",lineHeight:1.6}}>{sel.result.detail}</p>
+                </div>
+                <div style={{background:"var(--raised)",borderRadius:8,padding:14,marginBottom:16}}>
+                  <p style={{fontSize:10,color:"var(--ink3)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>AI Response Sample</p>
+                  <p style={{fontSize:12,color:"var(--ink2)",fontStyle:"italic",lineHeight:1.6}}>{sel.result.excerpt}</p>
+                </div>
+                <button className="btn" onClick={()=>setSel(null)} style={{width:"100%",padding:"10px",borderRadius:8,background:"var(--raised)",border:"1px solid var(--border)",color:"var(--ink2)",fontSize:13}}>
+                  Close
+                </button>
+              </>)
+            })()}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── VELOCITY CHART ────────────────────────────────────────────────────────────
+function VelocityChart({velocity}){
+  const [anim,setAnim]=useState(false)
+  useEffect(()=>{const t=setTimeout(()=>setAnim(true),300);return()=>clearTimeout(t)},[])
+  const avg=velocity.filter(v=>!v.isClient).reduce((a,b)=>a+b.value,0)/velocity.filter(v=>!v.isClient).length
+  const client=velocity.find(v=>v.isClient)
+
+  const CustomTip=({active,payload})=>{
+    if(!active||!payload?.length)return null
+    const d=payload[0].payload
+    return(
+      <div style={{background:"var(--raised)",border:"1px solid var(--border)",borderRadius:8,padding:"8px 12px"}}>
+        <p style={{color:"var(--ink1)",fontWeight:600,fontSize:13}}>{d.name}</p>
+        <p style={{color:"var(--ink2)",fontSize:12}}>{d.value} mentions/month</p>
+        {d.isClient&&<p style={{color:"#ef4444",fontSize:11,marginTop:2}}>← Your business</p>}
+      </div>
+    )
+  }
+
+  const CustomLabel=({x,y,width,value,index})=>(
+    <text x={x+width/2} y={y-8} textAnchor="middle"
+      fill={velocity[index]?.isClient?"#ef4444":"#94a3b8"}
+      fontSize={11} fontWeight={velocity[index]?.isClient?"700":"400"} fontFamily="Inter,sans-serif">
+      {value}/mo
+    </text>
+  )
+
+  return(
+    <div className="card" style={{marginBottom:24}}>
+      <h2 style={{fontSize:15,fontWeight:700,color:"var(--ink1)",marginBottom:4}}>AI Mention Velocity</h2>
+      <p style={{fontSize:12,color:"var(--ink3)",marginBottom:20}}>Average AI mentions per month across all platforms</p>
+      <ResponsiveContainer width="100%" height={220}>
+        <BarChart data={velocity} margin={{top:24,right:20,left:-20,bottom:0}} barCategoryGap="35%">
+          <CartesianGrid vertical={false} stroke="#1e2030"/>
+          <XAxis dataKey="name" tick={{fill:"#475569",fontSize:11,fontFamily:"Inter,sans-serif"}} axisLine={false} tickLine={false} tickFormatter={n=>n.split(" ")[0]}/>
+          <YAxis tick={{fill:"#475569",fontSize:10}} axisLine={false} tickLine={false} domain={[0,12]}/>
+          <Tooltip content={<CustomTip/>} cursor={{fill:"#1e2030"}}/>
+          <ReferenceLine y={avg} stroke="#475569" strokeDasharray="4 4"
+            label={{value:`Avg ${avg.toFixed(1)}/mo`,position:"right",fill:"#475569",fontSize:10,fontFamily:"Inter"}}/>
+          <Bar dataKey="value" radius={[4,4,0,0]} isAnimationActive={anim} animationDuration={900} animationEasing="ease-out">
+            {velocity.map((v,i)=><Cell key={i} fill={v.isClient?"#ef4444":"#475569"} fillOpacity={v.isClient?1:.65}/>)}
+            <LabelList content={CustomLabel}/>
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+      <div style={{marginTop:16,display:"flex",alignItems:"center",gap:12,padding:"10px 16px",background:"rgba(239,68,68,.08)",border:"1px solid rgba(127,29,29,.4)",borderRadius:8}}>
+        <span style={{fontSize:26,fontWeight:900,color:"#ef4444"}}>−{(avg/client.value).toFixed(1)}×</span>
+        <p style={{fontSize:12,color:"var(--ink2)"}}>
+          Westgate is mentioned <strong style={{color:"var(--ink1)"}}>{(avg/client.value).toFixed(1)}× less</strong> than the competitor average. Every missed mention is a referral going elsewhere.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// ─── FINDINGS TABLE ────────────────────────────────────────────────────────────
+function FindingsTable({findings}){
+  const [q,setQ]=useState("")
+  const [plat,setPlat]=useState("All")
+  const [stat,setStat]=useState("All")
+  const [sort,setSort]=useState({k:"score",d:"asc"})
+  const [page,setPage]=useState(0)
+  const PER=10
+
+  const platforms=["All",...[...new Set(findings.map(f=>f.platform))]]
+
+  const rows=useMemo(()=>{
+    let r=findings
+    if(q)r=r.filter(x=>[x.platform,x.query,x.issue,x.recommendation].join(" ").toLowerCase().includes(q.toLowerCase()))
+    if(plat!=="All")r=r.filter(x=>x.platform===plat)
+    if(stat!=="All")r=r.filter(x=>x.status===stat)
+    return [...r].sort((a,b)=>{
+      const av=a[sort.k]??"",bv=b[sort.k]??""
+      return av<bv?(sort.d==="asc"?-1:1):av>bv?(sort.d==="asc"?1:-1):0
+    })
+  },[findings,q,plat,stat,sort])
+
+  const pages=Math.ceil(rows.length/PER)
+  const vis=rows.slice(page*PER,(page+1)*PER)
+  const handleSort=k=>{setSort(prev=>({k,d:prev.k===k&&prev.d==="asc"?"desc":"asc"}));setPage(0)}
+  const SortArrow=({k})=>sort.k===k?<span style={{color:"var(--blue)",marginLeft:2}}>{sort.d==="asc"?"▲":"▼"}</span>:<span style={{color:"var(--ink3)",marginLeft:2,opacity:.4}}>⇅</span>
+
+  return(
+    <div className="card" style={{marginBottom:24}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <div>
+          <h2 style={{fontSize:15,fontWeight:700,color:"var(--ink1)"}}>Detailed Findings</h2>
+          <p style={{fontSize:12,color:"var(--ink3)",marginTop:2}}>{rows.length} results</p>
+        </div>
+      </div>
+      {/* Filters */}
+      <div style={{display:"flex",flexWrap:"wrap",gap:10,marginBottom:16}}>
+        <div style={{position:"relative",flex:"1",minWidth:180}}>
+          <span style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"var(--ink3)",fontSize:12}}>🔍</span>
+          <input value={q} onChange={e=>{setQ(e.target.value);setPage(0)}} placeholder="Search findings…" style={{paddingLeft:30,width:"100%"}}/>
+        </div>
+        <select value={plat} onChange={e=>{setPlat(e.target.value);setPage(0)}}>
+          {platforms.map(p=><option key={p}>{p}</option>)}
+        </select>
+        <div style={{display:"flex",borderRadius:8,border:"1px solid var(--border)",overflow:"hidden"}}>
+          {["All","found","partial","notFound"].map(s=>(
+            <button key={s} className="btn" onClick={()=>{setStat(s);setPage(0)}}
+              style={{padding:"8px 12px",fontSize:11,background:stat===s?"var(--raised)":"transparent",color:stat===s?"var(--ink1)":"var(--ink3)",fontWeight:stat===s?"600":"400"}}>
+              {s==="notFound"?"Not Found":s==="found"?"Found":s==="partial"?"Partial":"All"}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              {[["platform","Platform"],["query","Query"],["status","Status"],["score","Score"],["issue","Issue"],["recommendation","Recommendation"]].map(([k,l])=>(
+                <th key={k} onClick={()=>handleSort(k)}>{l}<SortArrow k={k}/></th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {vis.length===0&&<tr><td colSpan={6} style={{textAlign:"center",color:"var(--ink3)",padding:32}}>No results match your filters</td></tr>}
+            {vis.map((r,i)=>{
+              const st=STATUS[r.status]||STATUS.notFound
+              return(
+                <tr key={i}>
+                  <td style={{color:"var(--ink1)",fontWeight:500,whiteSpace:"nowrap"}}>{r.platform}</td>
+                  <td style={{color:"var(--ink2)",maxWidth:160}}><span style={{display:"block",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.query}</span></td>
+                  <td><span className="pill" style={{color:st.color,borderColor:st.border,background:st.bg}}>{st.label}</span></td>
+                  <td>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <div style={{width:52,height:5,background:"var(--raised)",borderRadius:999,overflow:"hidden"}}>
+                        <div style={{width:`${r.score}%`,height:"100%",background:r.score>=70?"#22c55e":r.score>=30?"#f59e0b":"#ef4444",borderRadius:999}}/>
+                      </div>
+                      <span style={{color:"var(--ink3)",fontSize:11}}>{r.score}</span>
+                    </div>
+                  </td>
+                  <td style={{color:"var(--ink3)",maxWidth:140}}><span style={{display:"block",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.issue}</span></td>
+                  <td style={{color:"var(--ink2)",maxWidth:220}}><span style={{display:"block",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{r.recommendation}</span></td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+      {pages>1&&(
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:12}}>
+          <span style={{fontSize:11,color:"var(--ink3)"}}>{page*PER+1}–{Math.min((page+1)*PER,rows.length)} of {rows.length}</span>
+          <div style={{display:"flex",gap:4}}>
+            {Array.from({length:pages},(_,i)=>(
+              <button key={i} className="btn" onClick={()=>setPage(i)}
+                style={{width:28,height:28,borderRadius:6,background:page===i?"var(--blue)":"var(--raised)",color:page===i?"white":"var(--ink3)",fontSize:11,border:"1px solid var(--border)"}}>
+                {i+1}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── INTERNAL: COMPETITOR BAR ──────────────────────────────────────────────────
+function CompetitorBar({data}){
+  const [anim,setAnim]=useState(false)
+  useEffect(()=>{const t=setTimeout(()=>setAnim(true),300);return()=>clearTimeout(t)},[])
+  const CustomTip=({active,payload})=>{
+    if(!active||!payload?.length)return null
+    const d=payload[0].payload
+    return(<div style={{background:"var(--raised)",border:"1px solid var(--border)",borderRadius:8,padding:"8px 12px"}}>
+      <p style={{color:"var(--ink1)",fontWeight:600,fontSize:13}}>{d.name}</p>
+      <p style={{color:"var(--ink2)",fontSize:12}}>Score: {d.overall} / 100</p>
+    </div>)
+  }
+  return(
+    <div className="card" style={{marginBottom:0,height:"100%"}}>
+      <h2 style={{fontSize:15,fontWeight:700,color:"var(--ink1)",marginBottom:4}}>Overall Visibility Scores</h2>
+      <p style={{fontSize:12,color:"var(--ink3)",marginBottom:20}}>Higher = more AI-visible</p>
+      <ResponsiveContainer width="100%" height={180}>
+        <BarChart data={data} layout="vertical" margin={{left:90,right:48,top:0,bottom:0}} barSize={20}>
+          <CartesianGrid horizontal={false} stroke="#1e2030"/>
+          <XAxis type="number" domain={[0,100]} tick={{fill:"#475569",fontSize:10}} axisLine={false} tickLine={false}/>
+          <YAxis type="category" dataKey="name"
+            tick={({x,y,payload})=>(
+              <text x={x} y={y} textAnchor="end" dy={4} fontSize={11} fontFamily="Inter,sans-serif"
+                fill={payload.value==="Westgate Auto Group"?"#ef4444":"#94a3b8"}>
+                {payload.value.split(" ")[0]}
+              </text>
+            )}
+            axisLine={false} tickLine={false}/>
+          <Tooltip content={<CustomTip/>}/>
+          <Bar dataKey="overall" radius={[0,4,4,0]} isAnimationActive={anim} animationDuration={900}>
+            {data.map((d,i)=><Cell key={i} fill={COMP_COLORS[i]} fillOpacity={d.name==="Westgate Auto Group"?1:.65}/>)}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+// ─── INTERNAL: RADAR ──────────────────────────────────────────────────────────
+function CompetitorRadar({data}){
+  const keys=["chatgpt","gemini","perplexity","grok","apple","googleSearch","googleMaps","bing"]
+  const labels=["ChatGPT","Gemini","Perplexity","Grok","Apple","G.Search","G.Maps","Bing"]
+  const radarData=keys.map((k,i)=>{
+    const obj={subject:labels[i]}
+    data.forEach(d=>{obj[d.name.split(" ")[0]]=d[k]})
+    return obj
+  })
+  return(
+    <div className="card" style={{marginBottom:0,height:"100%"}}>
+      <h2 style={{fontSize:15,fontWeight:700,color:"var(--ink1)",marginBottom:4}}>Platform Coverage Map</h2>
+      <p style={{fontSize:12,color:"var(--ink3)",marginBottom:16}}>AI visibility per platform (0–100)</p>
+      <ResponsiveContainer width="100%" height={280}>
+        <RadarChart data={radarData} margin={{top:10,right:30,bottom:10,left:30}}>
+          <PolarGrid stroke="#1e2030"/>
+          <PolarAngleAxis dataKey="subject" tick={{fill:"#94a3b8",fontSize:10,fontFamily:"Inter,sans-serif"}}/>
+          {data.map((d,i)=>(
+            <Radar key={d.name} name={d.name.split(" ")[0]} dataKey={d.name.split(" ")[0]}
+              stroke={COMP_COLORS[i]} fill={COMP_COLORS[i]}
+              fillOpacity={d.name==="Westgate Auto Group"?.3:.08}
+              strokeWidth={d.name==="Westgate Auto Group"?2.5:1.5}/>
+          ))}
+          <Legend formatter={v=><span style={{color:"#94a3b8",fontSize:11}}>{v}</span>}/>
+        </RadarChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+// ─── INTERNAL: SCORE TABLE ─────────────────────────────────────────────────────
+function ScoreMatrix({data}){
+  const cols=[
+    {k:"overall",l:"Overall"},{k:"chatgpt",l:"ChatGPT"},{k:"gemini",l:"Gemini"},
+    {k:"perplexity",l:"Perplexity"},{k:"grok",l:"Grok"},{k:"apple",l:"Apple"},
+    {k:"googleSearch",l:"G.Search"},{k:"googleMaps",l:"G.Maps"},{k:"bing",l:"Bing"}
+  ]
+  const sc=v=>v>=70?"#22c55e":v>=40?"#f59e0b":"#ef4444"
+  return(
+    <div className="card" style={{marginBottom:24}}>
+      <h2 style={{fontSize:15,fontWeight:700,color:"var(--ink1)",marginBottom:4}}>Full Score Matrix</h2>
+      <p style={{fontSize:12,color:"var(--ink3)",marginBottom:16}}>Scores by platform (0–100)</p>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Business</th>
+              {cols.map(c=><th key={c.k} style={{textAlign:"center",color:c.k==="overall"?"var(--ink1)":"var(--ink3)"}}>{c.l}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((d,i)=>(
+              <tr key={i} style={{background:d.name==="Westgate Auto Group"?"rgba(239,68,68,.06)":""}}>
+                <td style={{color:d.name==="Westgate Auto Group"?"#ef4444":"var(--ink1)",fontWeight:600,whiteSpace:"nowrap"}}>{d.name}</td>
+                {cols.map(c=>(
+                  <td key={c.k} style={{textAlign:"center",color:sc(d[c.k]),fontWeight:c.k==="overall"?900:600,fontSize:c.k==="overall"?14:12}}>
+                    {d[c.k]}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+// ─── INTERNAL: ACTIONS ─────────────────────────────────────────────────────────
+function PriorityActions({actions}){
+  const ic={High:"#ef4444",Medium:"#f59e0b",Low:"#94a3b8"}
+  const ec={High:"#475569",Medium:"#f59e0b",Low:"#22c55e"}
+  return(
+    <div className="card" style={{marginBottom:24}}>
+      <h2 style={{fontSize:15,fontWeight:700,color:"var(--ink1)",marginBottom:4}}>Priority Action Plan</h2>
+      <p style={{fontSize:12,color:"var(--ink3)",marginBottom:20}}>Ordered by expected visibility impact</p>
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {actions.map((a,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 16px",background:"var(--raised)",borderRadius:10,border:"1px solid var(--border)"}}>
+            <div style={{width:28,height:28,borderRadius:"50%",background:"var(--card)",border:"1px solid var(--border)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"var(--ink3)",flexShrink:0}}>
+              {a.p}
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <p style={{fontSize:13,fontWeight:500,color:"var(--ink1)"}}>{a.action}</p>
+              <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:5}}>
+                <span style={{fontSize:10,padding:"1px 6px",borderRadius:4,color:ic[a.impact],background:ic[a.impact]+"22"}}>{a.impact} impact</span>
+                <span style={{fontSize:10,padding:"1px 6px",borderRadius:4,color:ec[a.effort],background:ec[a.effort]+"22"}}>{a.effort} effort</span>
+                <span style={{fontSize:10,color:"var(--ink3)"}}>⏱ {a.timeframe}</span>
+              </div>
+            </div>
+            <span style={{fontSize:14,fontWeight:800,color:"#22c55e",flexShrink:0}}>{a.gain}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{marginTop:14,display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 16px",background:"rgba(34,197,94,.08)",border:"1px solid rgba(34,197,94,.2)",borderRadius:8}}>
+        <span style={{fontSize:13,color:"var(--ink2)"}}>📈 Total potential gain (12 months)</span>
+        <span style={{fontSize:20,fontWeight:900,color:"#22c55e"}}>+98 pts</span>
+      </div>
+    </div>
+  )
+}
+
+// ─── VIEWS ─────────────────────────────────────────────────────────────────────
+function ClientView({data}){
+  return(
+    <div>
+      <Label>Visibility Overview</Label>
+      <ScoreHero score={data.score}/>
+      <Label>Business Impact</Label>
+      <KPICards kpis={data.kpis}/>
+      <Label>Platform × Query Presence</Label>
+      <HeatmapGrid platforms={data.platforms} heatmap={data.heatmap}/>
+      <Label>Competitive Velocity</Label>
+      <VelocityChart velocity={data.velocity}/>
+      <Label>All Findings</Label>
+      <FindingsTable findings={data.findings}/>
+    </div>
+  )
+}
+
+function InternalView({data}){
+  return(
+    <div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:24,marginBottom:24}}>
+        <div><Label>Overall Ranking</Label><CompetitorBar data={data.internal.competitorScores}/></div>
+        <div><Label>Platform Coverage Map</Label><CompetitorRadar data={data.internal.competitorScores}/></div>
+      </div>
+      <Label>Score Matrix</Label>
+      <ScoreMatrix data={data.internal.competitorScores}/>
+      <Label>Action Plan</Label>
+      <PriorityActions actions={data.internal.priorityActions}/>
+    </div>
+  )
+}
+
+function Label({children}){
+  return <p style={{fontSize:11,color:"var(--ink3)",textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>{children}</p>
+}
+
+// ─── APP ───────────────────────────────────────────────────────────────────────
+function App(){
+  const [tab,setTab]=useState("client")
+  const TABS=[{id:"client",label:"Client Report",icon:"📊"},{id:"internal",label:"Internal Audit",icon:"🔍"}]
+
+  return(
+    <div>
+      {/* Header */}
+      <header className="no-print" style={{position:"sticky",top:0,zIndex:40,background:"rgba(10,11,15,.92)",backdropFilter:"blur(12px)",borderBottom:"1px solid var(--border)"}}>
+        <div style={{maxWidth:1280,margin:"0 auto",padding:"0 24px",height:56,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:18,fontWeight:800,letterSpacing:"-.02em",color:"var(--ink1)"}}>seen</span>
+            <span style={{color:"var(--ink3)"}}>·</span>
+            <span style={{fontSize:13,color:"var(--ink2)"}}>AI Visibility Report</span>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:16}}>
+            <div style={{textAlign:"right"}}>
+              <p style={{fontSize:13,fontWeight:600,color:"var(--ink1)"}}>{DATA.meta.client}</p>
+              <p style={{fontSize:11,color:"var(--ink3)"}}>{DATA.meta.subtitle} · {DATA.meta.date}</p>
+            </div>
+            <button className="btn" onClick={()=>window.print()}
+              style={{display:"flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:8,background:"var(--raised)",border:"1px solid var(--border)",color:"var(--ink2)",fontSize:13}}>
+              ⬇ Export PDF
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Tabs */}
+      <div className="no-print" style={{borderBottom:"1px solid var(--border)",background:"var(--base)"}}>
+        <div style={{maxWidth:1280,margin:"0 auto",padding:"0 24px",display:"flex",gap:4}}>
+          {TABS.map(t=>(
+            <button key={t.id} className={`tab btn ${tab===t.id?"active":""}`} onClick={()=>setTab(t.id)}>
+              <span>{t.icon}</span> {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Main */}
+      <main style={{maxWidth:1280,margin:"0 auto",padding:"32px 24px"}}>
+        {tab==="client"?<ClientView data={DATA}/>:<InternalView data={DATA}/>}
+      </main>
+
+      {/* Footer */}
+      <footer style={{borderTop:"1px solid var(--border)",padding:"20px 24px"}}>
+        <div style={{maxWidth:1280,margin:"0 auto",display:"flex",justifyContent:"space-between",fontSize:11,color:"var(--ink3)"}}>
+          <span>seen · seenfirst.studio</span>
+          <span>{DATA.meta.client} · {DATA.meta.date} · Confidential</span>
+        </div>
+      </footer>
+    </div>
+  )
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>)
+</script>
+</body>
+</html>
